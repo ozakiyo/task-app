@@ -78,6 +78,7 @@ const filtered = tasks.filter(task => {
     task.category === filterCategory
   );
 });
+変更あり
 
 -->
 <!DOCTYPE html>
@@ -133,13 +134,27 @@ const filtered = tasks.filter(task => {
     padding:0;
   }
   li{
+    background: :white;
+    margin-bottom:10px;
+    padding:10px;
+    border-radius:10px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    display:flex;
+    flex-direction: column;
+    align-items:flex-start;
+    text-align:left;
+  }
+  .task-top-info{
+    font-size:12px;
+    color:#555;
+    text-align:left;
+  }
+  .task-main-row{
     display:flex;
     justify-content:space-between;
     align-items:center;
-    background:#f9f9f9;
-    padding:8px;
-    margin-bottom:8px;
-    border-radius:5px;
+    flex-wrap:wrap;
+    gap:8px;
   }
   li.completed span{
     text-decoration:line-through;
@@ -224,6 +239,13 @@ const filtered = tasks.filter(task => {
   li.editing select{
     width:100%;
     box-sizing:border-box;
+  }
+  .task-main-row + .task-main-row{
+    margin-top:4px;
+  }
+  .task-buttons{
+    display:flex;
+    gap:6px;
   }
 
 </style>
@@ -480,6 +502,23 @@ const filtered = tasks.filter(task => {
             }
           }
 
+          //---作成日・更新日---
+          const topInfo = document.createElement("div");
+          topInfo.classList.add("task-top-info");
+
+          if(task.updatedAt){
+            const updated = new Date(task.updatedAt);
+            if(!isNaN(updated)){
+              topInfo.textContent = `更新日：${updated.toLocaleDateString("ja-JP")}`;
+            }
+          }else if(task.createdAt){
+              const created = new Date(task.createdAt);
+              if(!isNaN(created)){
+                topInfo.textContent = `作成日：${created.toLocaleDateString("ja-JP")}`;
+              }
+          }
+          li.appendChild(topInfo); 
+
           //---チェックボックス作成---
           const checkbox = document.createElement("input");
           checkbox.type = "checkbox";
@@ -536,15 +575,28 @@ const filtered = tasks.filter(task => {
           buttonArea.appendChild(delBtn);
 
           //---チェックボックスを左に配置---
-          li.appendChild(checkbox);
-          li.appendChild(span);
+          const titleRow = document.createElement("div");
+          titleRow.classList.add("task-main-row");
+          titleRow.appendChild(checkbox);
+          titleRow.appendChild(span);
+
+          const infoRow = document.createElement("div");
+          infoRow.classList.add("task-main-row");
           /*詳細説明*/
-          li.appendChild(descSpan);
+          infoRow.appendChild(descSpan);
           /*カテゴリ表示*/
-          li.appendChild(catSpan);
+          infoRow.appendChild(catSpan);
           /*期限表示*/
-          li.appendChild(dueSpan);
-          li.appendChild(buttonArea);
+          infoRow.appendChild(dueSpan);
+
+          const buttonRow = document.createElement("div");
+          buttonRow.classList.add("task-main-row");
+          buttonRow.appendChild(buttonArea);
+
+          li.appendChild(titleRow);
+          li.appendChild(infoRow);
+          li.appendChild(buttonRow);
+
           taskList.appendChild(li);
         }
       }
@@ -577,7 +629,10 @@ const filtered = tasks.filter(task => {
             priority, 
             dueDate, 
             category,
-            createdAt: new Date().toISOString()
+            createdAt: new Date().toISOString(),
+            updatedAt: null, //更新日
+            updated: false //作成日、更新日を判別フラグ
+
           });/*priority 優先度色分け表示, dueDate 期限表示,category カテゴリ追加,createdAt 作成日時*/
         }else{
           data[editIndex].text = text;
@@ -689,6 +744,8 @@ const filtered = tasks.filter(task => {
           data[index].dueDate = dueInput.value;
           data[index].priority = prioritySelect.value;
           data[index].category = categorySelect.value;
+          data[index].updatedAt = new Date().toISOString();//更新日保存
+          data[index].updated = true; //更新フラグを立てる
           saveTasks();
           renderTasks();
         });
