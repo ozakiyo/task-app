@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>タスク管理アプリ</title>
+<style>
+/* ===============================
+   基本デザイン
+=============================== */
+body { font-family: Arial, sans-serif; margin: 0; padding: 0; }
+header { background: #007bff; color: white; padding: 15px; text-align: center; font-size: 1.5em; }
+.container { padding: 20px; max-width: 800px; margin: auto; }
+
+/* ===============================
+   編集モード & ボタン
+=============================== */
+.task-buttons button {
+  margin-left: 5px;
+  font-size: 12px;
+  padding: 5px 10px;
+}
+.edit-input {
+  flex: 1;
+  margin-right: 10px;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+/* ===============================
+   セクション見出しデザイン
+=============================== */
+.section-title {
+  font-size: 1.1em;
+  font-weight: 600;
+  color: #007bff;
+  margin: 25px 0 10px;
+  padding-left: 10px;
+  border-left: 4px solid #007bff;
+  background-color: #f0f8ff;
+  border-radius: 6px;
+  padding: 6px 10px;
+  letter-spacing: 0.5px;
+}
+
+/* ===============================
+   レスポンシブ対応
+=============================== */
+@media(max-width:600px){
+  .input-area,
+  .filter-area,
+  .sort-area,
+  .category-area,
+  .category-delete-area{
+    flex-direction: column;
+    align-items: stretch;
+  }
+  button { width: 100%; }
+}
+
+/* ===============================
+   タスクリスト
+=============================== */
+#taskList li { margin-bottom: 10px; padding: 10px; border: 1px solid #ccc; border-radius: 5px; }
+.completed { text-decoration: line-through; color: #888; }
+.high { background-color: #ffe5e5; }
+.medium { background-color: #fff5e5; }
+.low { background-color: #e5ffe5; }
+</style>
+</head>
+<body>
+<header>タスク管理アプリ</header>
+<div class="container">
+
+  <h2 class="section-title">タスク追加</h2>
+  <div class="input-area">
+    <input type="text" id="taskInput" placeholder="タスクを入力">
+    <select id="prioritySelector">
+      <option value="high">高</option>
+      <option value="medium" selected>中</option>
+      <option value="low">低</option>
+    </select>
+    <button id="addBtn">追加</button>
+  </div>
+
+  <ul id="taskList"></ul>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
