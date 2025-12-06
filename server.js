@@ -1,123 +1,175 @@
+require('dotenv').config();
 const express = require('express');
-const sqlite3 = require('sqlite3');
 const path = require('path');
-const app = express();
+const { Pool } = require('pg');
 
+const app = express();
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
-// DB 初期化
-const db = new sqlite3.Database('./db.sqlite');
-db.serialize(() => {
-  db.run(`CREATE TABLE IF NOT EXISTS tasks (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    text TEXT,
-    description TEXT,
-    priority TEXT,
-    dueDate TEXT,
-    category TEXT,
-    completed INTEGER,
-    createdAt TEXT,
-    updatedAt TEXT
-  )`);
+// ======================================
+// PostgreSQL 接続設定
+// ======================================
 
-  db.run(`CREATE TABLE IF NOT EXISTS categories (
-    name TEXT PRIMARY KEY
-  )`);
+// NODE_ENV=production のとき → Render → SSL 必須
+// NODE_ENV=development のとき → ローカル → SSL 無効
+const isProduction = process.env.NODE_ENV === "production";
+
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: isProduction
+    ? { rejectUnauthorized: false }   // Render: SSL 必須
+    : false                           // Local: SSL なし
 });
 
-// =========================
+// ======================================
+// 初期テーブル作成
+// ======================================
+async function initDB() {
+  try {
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS tasks (
+        id SERIAL PRIMARY KEY,
+        text TEXT,
+        description TEXT,
+        priority TEXT,
+        dueDate TEXT,
+        category TEXT,
+        completed BOOLEAN DEFAULT false,
+        createdAt TIMESTAMPTZ,
+        updatedAt TIMESTAMPTZ
+      );
+    `);
+
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS categories (
+        name TEXT PRIMARY KEY
+      );
+    `);
+
+    console.log("DB initialized");
+  } catch (err) {
+    console.error("DB init error:", err.message);
+  }
+}
+
+initDB();
+
+// ======================================
 // タスク API
-// =========================
+// ======================================
 
 // 全タスク取得
-app.get('/tasks', (req, res) => {
-  db.all("SELECT * FROM tasks ORDER BY createdAt DESC", [], (err, rows) => {
-    if(err) return res.status(500).json({error: err.message});
-    // completed を boolean に変換
-    rows.forEach(r => r.completed = !!r.completed);
-    res.json(rows);
-  });
+app.get('/tasks', async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT * FROM tasks ORDER BY createdAt DESC;
+    `);
+    res.json(result.rows);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 // タスク追加
-app.post('/tasks', (req, res) => {
+app.post('/tasks', async (req, res) => {
   const { text, description, priority, dueDate, category } = req.body;
   const createdAt = new Date().toISOString();
-  db.run(
-    `INSERT INTO tasks(text,description,priority,dueDate,category,completed,createdAt,updatedAt)
-     VALUES(?,?,?,?,?,?,?,?)`,
-    [text, description, priority, dueDate, category, 0, createdAt, null],
-    function(err){
-      if(err) return res.status(500).json({error: err.message});
-      res.json({id: this.lastID, text, description, priority, dueDate, category, completed: false, createdAt, updatedAt: null});
-    }
-  );
+
+  try {
+    const result = await pool.query(
+      `INSERT INTO tasks(text, description, priority, dueDate, category, completed, createdAt, updatedAt)
+       VALUES($1,$2,$3,$4,$5,false,$6,NULL)
+       RETURNING *`,
+      [text, description, priority, dueDate, category, createdAt]
+    );
+    res.json(result.rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 // タスク更新
-app.put('/tasks/:id', (req,res)=>{
+app.put('/tasks/:id', async (req, res) => {
   const { id } = req.params;
   const { text, description, priority, dueDate, category, completed } = req.body;
   const updatedAt = new Date().toISOString();
-  db.run(
-    `UPDATE tasks SET text=?,description=?,priority=?,dueDate=?,category=?,completed=?,updatedAt=? WHERE id=?`,
-    [text, description, priority, dueDate, category, completed?1:0, updatedAt, id],
-    function(err){
-      if(err) return res.status(500).json({error: err.message});
-      res.json({id, text, description, priority, dueDate, category, completed, updatedAt});
-    }
-  );
+
+  try {
+    const result = await pool.query(
+      `UPDATE tasks
+       SET text=$1, description=$2, priority=$3, dueDate=$4, category=$5, completed=$6, updatedAt=$7
+       WHERE id=$8
+       RETURNING *`,
+      [text, description, priority, dueDate, category, completed, updatedAt, id]
+    );
+    res.json(result.rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 // タスク削除
-app.delete('/tasks/:id',(req,res)=>{
+app.delete('/tasks/:id', async (req, res) => {
   const { id } = req.params;
-  db.run(`DELETE FROM tasks WHERE id=?`, [id], function(err){
-    if(err) return res.status(500).json({error: err.message});
+
+  try {
+    await pool.query('DELETE FROM tasks WHERE id=$1', [id]);
     res.sendStatus(204);
-  });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
-// =========================
+// ======================================
 // カテゴリ API
-// =========================
+// ======================================
 
 // 全カテゴリ取得
-app.get('/categories', (req,res)=>{
-  db.all("SELECT name FROM categories", [], (err, rows)=>{
-    if(err) return res.status(500).json({error: err.message});
-    res.json(rows.map(r=>r.name));
-  });
+app.get('/categories', async (req, res) => {
+  try {
+    const result = await pool.query('SELECT name FROM categories;');
+    res.json(result.rows.map(r => r.name));
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 // カテゴリ追加
-app.post('/categories', (req,res)=>{
+app.post('/categories', async (req, res) => {
   const { name } = req.body;
-  db.run(`INSERT OR IGNORE INTO categories(name) VALUES(?)`, [name], function(err){
-    if(err) return res.status(500).json({error: err.message});
-    res.json({name});
-  });
+
+  try {
+    await pool.query(
+      `INSERT INTO categories(name) VALUES($1)
+       ON CONFLICT (name) DO NOTHING`,
+      [name]
+    );
+
+    res.json({ name });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 // カテゴリ削除
-app.delete('/categories/:name', (req,res)=>{
+app.delete('/categories/:name', async (req, res) => {
   const { name } = req.params;
-  db.run(`DELETE FROM categories WHERE name=?`, [name], function(err){
-    if(err) return res.status(500).json({error: err.message});
-    // タスクに該当カテゴリがあれば "その他" に振替
-    db.run(`UPDATE tasks SET category='その他' WHERE category=?`, [name], function(err2){
-      if(err2) return res.status(500).json({error: err2.message});
-      res.sendStatus(204);
-    });
-  });
+
+  try {
+    await pool.query(`DELETE FROM categories WHERE name=$1`, [name]);
+    await pool.query(`UPDATE tasks SET category='その他' WHERE category=$1`, [name]);
+    res.sendStatus(204);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
-// =========================
+// ======================================
 // サーバ起動
-// =========================
+// ======================================
 const PORT = process.env.PORT || 10000;
-app.listen(PORT, ()=>console.log(`Server running on port ${PORT}`));
-
-
-
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+  console.log(`Environment: ${isProduction ? "production" : "development"}`);
+});
