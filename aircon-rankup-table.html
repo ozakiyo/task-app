@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>エアコン2027問題 機種ランクアップ表 プロトタイプ</title>
+<style>
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  body{
+    font-family: "Hiragino Kaku Gothic ProN","Yu Gothic","Meiryo",sans-serif;
+    background:#f5f7fa;
+    color:#333;
+    line-height:1.7;
+  }
+
+  /* ========== ヘッダー ========== */
+  .page-header{
+    background:linear-gradient(135deg,#1a73e8 0%,#0d47a1 100%);
+    color:#fff;
+    text-align:center;
+    padding:32px 16px 24px;
+  }
+  .page-header h1{ font-size:1.5em; letter-spacing:1px; }
+  .page-header p{ font-size:0.85em; opacity:0.85; margin-top:6px; }
+
+  /* ========== コンテナ ========== */
+  .container{
+    max-width:960px;
+    margin:0 auto;
+    padding:24px 16px 60px;
+  }
+
+  /* ========== セクション ========== */
+  .section{
+    background:#fff;
+    border-radius:12px;
+    box-shadow:0 2px 12px rgba(0,0,0,0.06);
+    padding:28px 24px;
+    margin-bottom:28px;
+  }
+  .section h2{
+    font-size:1.2em;
+    color:#1a73e8;
+    border-left:4px solid #1a73e8;
+    padding-left:12px;
+    margin-bottom:18px;
+  }
+  .section p{ margin-bottom:14px; font-size:0.95em; }
+
+  /* ========== 注釈 ========== */
+  .note-box{
+    background:#fff8e1;
+    border-left:4px solid #ffc107;
+    padding:14px 18px;
+    border-radius:8px;
+    margin:18px 0;
+    font-size:0.9em;
+  }
+
+  /* ========== 畳数タブ ========== */
+  .size-tabs{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+    margin-bottom:20px;
+  }
+  .size-tabs button{
+    padding:8px 18px;
+    border:2px solid #1a73e8;
+    background:#fff;
+    color:#1a73e8;
+    border-radius:24px;
+    cursor:pointer;
+    font-size:0.9em;
+    font-weight:600;
+    transition:all 0.2s;
+  }
+  .size-tabs button:hover,
+  .size-tabs button.active{
+    background:#1a73e8;
+    color:#fff;
+  }
+
+  /* ========== ランクアップ表 ========== */
+  .rankup-table-wrapper{
+    overflow-x:auto;
+    -webkit-overflow-scrolling:touch;
+    margin-top:10px;
+  }
+  .rankup-table{
+    width:100%;
+    border-collapse:separate;
+    border-spacing:0;
+    min-width:640px;
+  }
+  .rankup-table thead th{
+    background:#1a73e8;
+    color:#fff;
+    padding:12px 10px;
+    font-size:0.85em;
+    white-space:nowrap;
+    position:sticky;
+    top:0;
+  }
+  .rankup-table thead th:first-child{ border-radius:8px 0 0 0; }
+  .rankup-table thead th:last-child{ border-radius:0 8px 0 0; }
+
+  .rankup-table tbody td{
+    padding:12px 10px;
+    font-size:0.88em;
+    border-bottom:1px solid #eee;
+    vertical-align:middle;
+    text-align:center;
+  }
+  .rankup-table tbody tr:last-child td{ border-bottom:none; }
+  .rankup-table tbody tr:hover{ background:#f0f7ff; }
+
+  /* ランク列 */
+  .rank-cell{
+    font-weight:700;
+    border-radius:6px;
+    padding:4px 12px;
+    display:inline-block;
+    min-width:80px;
+    font-size:0.82em;
+  }
+  .rank-standard   { background:#e3f2fd; color:#1565c0; }
+  .rank-middle     { background:#e8f5e9; color:#2e7d32; }
+  .rank-high       { background:#fff3e0; color:#e65100; }
+  .rank-premium    { background:#fce4ec; color:#c62828; }
+
+  /* 推奨バッジ */
+  .recommend-badge{
+    display:inline-block;
+    background:linear-gradient(135deg,#ff6f00,#ff8f00);
+    color:#fff;
+    font-size:0.72em;
+    padding:2px 8px;
+    border-radius:10px;
+    margin-left:6px;
+    font-weight:600;
+    vertical-align:middle;
+  }
+
+  /* 省エネ達成率バー */
+  .energy-bar-wrapper{
+    display:flex;
+    align-items:center;
+    gap:6px;
+    justify-content:center;
+  }
+  .energy-bar{
+    width:80px;
+    height:8px;
+    background:#e0e0e0;
+    border-radius:4px;
+    overflow:hidden;
+    position:relative;
+  }
+  .energy-bar-fill{
+    height:100%;
+    border-radius:4px;
+    transition:width 0.4s;
+  }
+  .energy-bar-fill.safe   { background:#4caf50; }
+  .energy-bar-fill.warning{ background:#ff9800; }
+  .energy-bar-fill.danger { background:#f44336; }
+
+  /* 矢印 */
+  .arrow-cell{
+    font-size:1.5em;
+    color:#1a73e8;
+  }
+
+  /* 価格帯 */
+  .price-range{ font-weight:600; color:#333; }
+  .price-diff{
+    font-size:0.78em;
+    color:#e65100;
+    display:block;
+    margin-top:2px;
+  }
+
+  /* 機能バッジ */
+  .feature-badges{
+    display:flex;
+    flex-wrap:wrap;
+    gap:4px;
+    justify-content:center;
+  }
+  .feature-badge{
+    background:#e8eaf6;
+    color:#283593;
+    font-size:0.72em;
+    padding:2px 8px;
+    border-radius:10px;
+    white-space:nowrap;
+  }
+
+  /* ========== アコーディオン (FAQ) ========== */
+  details{
+    background:#fff;
+    border:1px solid #e0e0e0;
+    border-radius:10px;
+    margin-bottom:10px;
+    overflow:hidden;
+  }
+  details summary{
+    padding:14px 18px;
+    font-weight:600;
+    cursor:pointer;
+    font-size:0.95em;
+    list-style:none;
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  details summary::before{
+    content:"▶";
+    font-size:0.7em;
+    color:#1a73e8;
+    transition:transform 0.2s;
+  }
+  details[open] summary::before{ transform:rotate(90deg); }
+  details .faq-body{
+    padding:0 18px 16px;
+    font-size:0.9em;
+    color:#555;
+  }
+
+  /* ========== CTA ========== */
+  .cta-area{
+    text-align:center;
+    margin-top:24px;
+  }
+  .cta-btn{
+    display:inline-block;
+    background:linear-gradient(135deg,#1a73e8,#0d47a1);
+    color:#fff;
+    padding:14px 40px;
+    border-radius:30px;
+    text-decoration:none;
+    font-weight:700;
+    font-size:1em;
+    transition:opacity 0.2s;
+    box-shadow:0 4px 14px rgba(13,71,161,0.3);
+  }
+  .cta-btn:hover{ opacity:0.88; }
+
+  /* ========== レスポンシブ ========== */
+  @media(max-width:600px){
+    .page-header h1{ font-size:1.15em; }
+    .section{ padding:20px 14px; }
+    .size-tabs button{ padding:6px 12px; font-size:0.82em; }
+    .rankup-table{ min-width:540px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <h1>エアコンの2027年問題 — 機種ランクアップ表</h1>
+  <p>省エネ新基準で変わるエアコン選び。現行モデルからの買い替え先がひと目でわかります。</p>
+</div>
+
+<div class="container">
+
+  <!-- 概要セクション -->
+  <div class="section">
+    <h2>2027年省エネ新基準とは</h2>
+    <p>「省エネ法」に基づき、<strong>2027年度目標の省エネ基準達成率100%未満のエアコンは販売終了・リニューアル</strong>が必要になります。新基準を満たすための性能向上と開発コスト増により、お買い得モデルの減少や全体的な価格上昇が予想されています。</p>
+    <div class="note-box">
+      <strong>今が買い替えのチャンス：</strong>選択肢が豊富な今のうちにご検討いただくことをおすすめします。下記の表で、現在お使いのランクから1つ上のランクへの移行を確認できます。
+    </div>
+  </div>
+
+  <!-- 畳数選択 + ランクアップ表セクション -->
+  <div class="section">
+    <h2>機種ランクアップ表</h2>
+    <p>お部屋の畳数を選択すると、各グレードの比較とランクアップ先が表示されます。</p>
+
+    <div class="size-tabs" id="sizeTabs">
+      <button class="active" data-size="6">6畳</button>
+      <button data-size="8">8畳</button>
+      <button data-size="10">10畳</button>
+      <button data-size="14">14畳</button>
+      <button data-size="18">18畳</button>
+      <button data-size="23">23畳</button>
+    </div>
+
+    <div class="rankup-table-wrapper">
+      <table class="rankup-table" id="rankupTable">
+        <thead>
+          <tr>
+            <th>現在のグレード</th>
+            <th>省エネ達成率<br>(27年基準)</th>
+            <th>年間電気代<br>目安</th>
+            <th></th>
+            <th>おすすめ<br>ランクアップ先</th>
+            <th>省エネ達成率<br>(27年基準)</th>
+            <th>年間電気代<br>目安</th>
+            <th>価格帯目安</th>
+            <th>追加される<br>主な機能</th>
+          </tr>
+        </thead>
+        <tbody id="rankupBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 補足・FAQ セクション -->
+  <div class="section">
+    <h2>よくあるご質問</h2>
+
+    <details>
+      <summary>省エネ基準達成率100%未満だと使えなくなるの？</summary>
+      <div class="faq-body">
+        すでにご購入・設置済みのエアコンが使えなくなるわけではありません。2027年度以降、基準未達のモデルは<strong>新規販売ができなくなる</strong>ため、早めの買い替え検討をおすすめしています。
+      </div>
+    </details>
+
+    <details>
+      <summary>ランクアップすると電気代はどのくらい安くなる？</summary>
+      <div class="faq-body">
+        畳数やご使用状況によりますが、スタンダード→ミドルクラスで年間約3,000〜5,000円、ミドル→ハイグレードで年間約4,000〜8,000円の電気代削減が期待できます。長期的に見るとランクアップのコストを回収できるケースも多くあります。
+      </div>
+    </details>
+
+    <details>
+      <summary>どのメーカーがおすすめ？</summary>
+      <div class="faq-body">
+        各メーカーにそれぞれ特長があります。換気・加湿ならダイキン、自動お掃除なら日立、赤外線センサーなら三菱、空気清浄ならシャープなど、重視する機能に合わせてお選びください。詳しくは<a href="#">メーカー機能比較セクション</a>をご覧ください。
+      </div>
+    </details>
+  </div>
+
+  <!-- CTA -->
+  <div class="section" style="text-align:center;">
+    <h2>今が買い替えのベストタイミング</h2>
+    <p>2027年の新基準施行前なら、幅広いモデルからお選びいただけます。</p>
+    <div class="cta-area">
+      <a href="#" class="cta-btn">エアコンの売れ筋ランキングを見る →</a>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const rankupData = {
+  "6": [
+    {
+      current: { rank:"スタンダード", rankClass:"rank-standard", example:"各社エントリーモデル", rate:85, cost:"約21,000円" },
+      next:    { rank:"ミドルクラス", rankClass:"rank-middle", example:"各社中級モデル", rate:105, cost:"約17,500円", price:"7〜10万円", diff:"約-3,500円/年", features:["フィルター自動掃除","人感センサー"] },
+    },
+    {
+      current: { rank:"ミドルクラス", rankClass:"rank-middle", example:"各社中級モデル", rate:100, cost:"約17,500円" },
+      next:    { rank:"ハイグレード", rankClass:"rank-high", example:"各社上位モデル", rate:118, cost:"約14,000円", price:"10〜15万円", diff:"約-3,500円/年", features:["AI自動運転","空気清浄","除湿強化"], recommend:true },
+    },
+    {
+      current: { rank:"ハイグレード", rankClass:"rank-high", example:"各社上位モデル", rate:110, cost:"約14,000円" },
+      next:    { rank:"プレミアム", rankClass:"rank-premium", example:"各社最上位モデル", rate:130, cost:"約11,500円", price:"15〜22万円", diff:"約-2,500円/年", features:["換気機能","加湿機能","IoT連携"] },
+    }
+  ],
+  "8": [
+    {
+      current: { rank:"スタンダード", rankClass:"rank-standard", example:"各社エントリーモデル", rate:82, cost:"約25,000円" },
+      next:    { rank:"ミドルクラス", rankClass:"rank-middle", example:"各社中級モデル", rate:103, cost:"約21,000円", price:"9〜12万円", diff:"約-4,000円/年", features:["フィルター自動掃除","人感センサー"] },
+    },
+    {
+      current: { rank:"ミドルクラス", rankClass:"rank-middle", example:"各社中級モデル", rate:100, cost:"約21,000円" },
+      next:    { rank:"ハイグレード", rankClass:"rank-high", example:"各社上位モデル", rate:116, cost:"約17,000円", price:"12〜17万円", diff:"約-4,000円/年", features:["AI自動運転","空気清浄","除湿強化"], recommend:true },
+    },
+    {
+      current: { rank:"ハイグレード", rankClass:"rank-high", example:"各社上位モデル", rate:108, cost:"約17,000円" },
+      next:    { rank:"プレミアム", rankClass:"rank-premium", example:"各社最上位モデル", rate:128, cost:"約13,500円", price:"17〜25万円", diff:"約-3,500円/年", features:["換気機能","加湿機能","IoT連携"] },
+    }
+  ],
+  "10": [
+    {
+      current: { rank:"スタンダード", rankClass:"rank-standard", example:"各社エントリーモデル", rate:80, cost:"約30,000円" },
+      next:    { rank:"ミドルクラス", rankClass:"rank-middle", example:"各社中級モデル", rate:102, cost:"約25,000円", price:"11〜15万円", diff:"約-5,000円/年", features:["フィルター自動掃除","人感センサー"] },
+    },
+    {
+      current: { rank:"ミドルクラス", rankClass:"rank-middle", example:"各社中級モデル", rate:100, cost:"約25,000円" },
+      next:    { rank:"ハイグレード", rankClass:"rank-high", example:"各社上位モデル", rate:114, cost:"約20,000円", price:"15〜20万円", diff:"約-5,000円/年", features:["AI自動運転","空気清浄","除湿強化"], recommend:true },
+    },
+    {
+      current: { rank:"ハイグレード", rankClass:"rank-high", example:"各社上位モデル", rate:106, cost:"約20,000円" },
+      next:    { rank:"プレミアム", rankClass:"rank-premium", example:"各社最上位モデル", rate:126, cost:"約16,000円", price:"20〜30万円", diff:"約-4,000円/年", features:["換気機能","加湿機能","IoT連携"] },
+    }
+  ],
+  "14": [
+    {
+      current: { rank:"スタンダード", rankClass:"rank-standard", example:"各社エントリーモデル", rate:78, cost:"約42,000円" },
+      next:    { rank:"ミドルクラス", rankClass:"rank-middle", example:"各社中級モデル", rate:101, cost:"約35,000円", price:"14〜19万円", diff:"約-7,000円/年", features:["フィルター自動掃除","人感センサー"] },
+    },
+    {
+      current: { rank:"ミドルクラス", rankClass:"rank-middle", example:"各社中級モデル", rate:100, cost:"約35,000円" },
+      next:    { rank:"ハイグレード", rankClass:"rank-high", example:"各社上位モデル", rate:112, cost:"約28,000円", price:"19〜26万円", diff:"約-7,000円/年", features:["AI自動運転","空気清浄","除湿強化"], recommend:true },
+    },
+    {
+      current: { rank:"ハイグレード", rankClass:"rank-high", example:"各社上位モデル", rate:105, cost:"約28,000円" },
+      next:    { rank:"プレミアム", rankClass:"rank-premium", example:"各社最上位モデル", rate:124, cost:"約22,000円", price:"26〜38万円", diff:"約-6,000円/年", features:["換気機能","加湿機能","IoT連携"] },
+    }
+  ],
+  "18": [
+    {
+      current: { rank:"スタンダード", rankClass:"rank-standard", example:"各社エントリーモデル", rate:76, cost:"約55,000円" },
+      next:    { rank:"ミドルクラス", rankClass:"rank-middle", example:"各社中級モデル", rate:100, cost:"約45,000円", price:"18〜24万円", diff:"約-10,000円/年", features:["フィルター自動掃除","人感センサー"] },
+    },
+    {
+      current: { rank:"ミドルクラス", rankClass:"rank-middle", example:"各社中級モデル", rate:100, cost:"約45,000円" },
+      next:    { rank:"ハイグレード", rankClass:"rank-high", example:"各社上位モデル", rate:110, cost:"約36,000円", price:"24〜33万円", diff:"約-9,000円/年", features:["AI自動運転","空気清浄","除湿強化"], recommend:true },
+    },
+    {
+      current: { rank:"ハイグレード", rankClass:"rank-high", example:"各社上位モデル", rate:104, cost:"約36,000円" },
+      next:    { rank:"プレミアム", rankClass:"rank-premium", example:"各社最上位モデル", rate:122, cost:"約29,000円", price:"33〜48万円", diff:"約-7,000円/年", features:["換気機能","加湿機能","IoT連携"] },
+    }
+  ],
+  "23": [
+    {
+      current: { rank:"スタンダード", rankClass:"rank-standard", example:"各社エントリーモデル", rate:74, cost:"約65,000円" },
+      next:    { rank:"ミドルクラス", rankClass:"rank-middle", example:"各社中級モデル", rate:100, cost:"約53,000円", price:"22〜28万円", diff:"約-12,000円/年", features:["フィルター自動掃除","人感センサー"] },
+    },
+    {
+      current: { rank:"ミドルクラス", rankClass:"rank-middle", example:"各社中級モデル", rate:100, cost:"約53,000円" },
+      next:    { rank:"ハイグレード", rankClass:"rank-high", example:"各社上位モデル", rate:108, cost:"約43,000円", price:"28〜38万円", diff:"約-10,000円/年", features:["AI自動運転","空気清浄","除湿強化"], recommend:true },
+    },
+    {
+      current: { rank:"ハイグレード", rankClass:"rank-high", example:"各社上位モデル", rate:102, cost:"約43,000円" },
+      next:    { rank:"プレミアム", rankClass:"rank-premium", example:"各社最上位モデル", rate:120, cost:"約35,000円", price:"38〜55万円", diff:"約-8,000円/年", features:["換気機能","加湿機能","IoT連携"] },
+    }
+  ]
+};
+
+function getBarClass(rate) {
+  if (rate >= 100) return "safe";
+  if (rate >= 90) return "warning";
+  return "danger";
+}
+
+function renderEnergyBar(rate) {
+  const pct = Math.min(rate, 140);
+  const cls = getBarClass(rate);
+  return `
+    <div class="energy-bar-wrapper">
+      <div class="energy-bar">
+        <div class="energy-bar-fill ${cls}" style="width:${(pct/140)*100}%"></div>
+      </div>
+      <span style="font-weight:600;color:${rate>=100?'#2e7d32':'#c62828'}">${rate}%</span>
+    </div>`;
+}
+
+function renderTable(size) {
+  const rows = rankupData[size];
+  if (!rows) return;
+  const tbody = document.getElementById("rankupBody");
+  tbody.innerHTML = "";
+
+  rows.forEach(row => {
+    const c = row.current;
+    const n = row.next;
+    const recommendHTML = n.recommend ? '<span class="recommend-badge">おすすめ</span>' : '';
+    const featuresHTML = n.features.map(f => `<span class="feature-badge">${f}</span>`).join("");
+
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>
+        <span class="rank-cell ${c.rankClass}">${c.rank}</span>
+        <div style="font-size:0.75em;color:#888;margin-top:4px">${c.example}</div>
+      </td>
+      <td>${renderEnergyBar(c.rate)}</td>
+      <td>${c.cost}</td>
+      <td class="arrow-cell">→</td>
+      <td>
+        <span class="rank-cell ${n.rankClass}">${n.rank}</span>${recommendHTML}
+        <div style="font-size:0.75em;color:#888;margin-top:4px">${n.example}</div>
+      </td>
+      <td>${renderEnergyBar(n.rate)}</td>
+      <td>${n.cost}</td>
+      <td>
+        <span class="price-range">${n.price}</span>
+        <span class="price-diff">${n.diff} 節約</span>
+      </td>
+      <td><div class="feature-badges">${featuresHTML}</div></td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+document.getElementById("sizeTabs").addEventListener("click", function(e) {
+  if (e.target.tagName !== "BUTTON") return;
+  document.querySelectorAll(".size-tabs button").forEach(b => b.classList.remove("active"));
+  e.target.classList.add("active");
+  renderTable(e.target.dataset.size);
+});
+
+renderTable("6");
+</script>
+
+</body>
+</html>
