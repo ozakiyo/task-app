@@ -1,0 +1,1154 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>エアコン2027年問題 機種ランクアップ表 プロトタイプ</title>
+<style>
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: "Hiragino Kaku Gothic ProN", "Hiragino Sans", "Yu Gothic", "Meiryo", sans-serif;
+  background-color: #f5f5f5;
+  color: #333;
+  line-height: 1.7;
+}
+
+.page-wrapper {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 20px 16px 60px;
+}
+
+.section-heading {
+  font-size: 22px;
+  font-weight: 700;
+  color: #1a1a1a;
+  padding: 12px 0 12px 16px;
+  margin: 40px 0 10px;
+  border-left: 5px solid #e60012;
+  line-height: 1.4;
+}
+
+.section-lead {
+  font-size: 14px;
+  color: #555;
+  margin-bottom: 24px;
+  line-height: 1.8;
+  padding: 0 4px;
+}
+
+.section-lead strong {
+  color: #e60012;
+  font-weight: 700;
+}
+
+/* ============================
+   ランクアップ表 共通スタイル
+   ============================ */
+.rankup-table-wrapper {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  margin-bottom: 32px;
+  border-radius: 8px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+}
+
+.rankup-table {
+  width: 100%;
+  min-width: 700px;
+  border-collapse: collapse;
+  background: #fff;
+  font-size: 14px;
+}
+
+.rankup-table thead th {
+  background: #2c3e50;
+  color: #fff;
+  font-weight: 600;
+  padding: 14px 12px;
+  text-align: center;
+  white-space: nowrap;
+  font-size: 13px;
+  letter-spacing: 0.5px;
+}
+
+.rankup-table thead th.col-arrow {
+  width: 50px;
+  background: #34495e;
+}
+
+.rankup-table thead th.col-before {
+  background: #7f8c8d;
+}
+
+.rankup-table thead th.col-after {
+  background: #e60012;
+}
+
+.rankup-table tbody td {
+  padding: 12px;
+  border-bottom: 1px solid #eee;
+  vertical-align: middle;
+  text-align: center;
+}
+
+.rankup-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.rankup-table tbody tr:hover {
+  background-color: #fafbfc;
+}
+
+/* メーカーグループヘッダー */
+.rankup-table .maker-row td {
+  background: #f0f4f8;
+  font-weight: 700;
+  font-size: 15px;
+  color: #2c3e50;
+  padding: 10px 12px;
+  text-align: left;
+  border-bottom: 2px solid #dce3ea;
+}
+
+.maker-row .maker-icon {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #e60012;
+  margin-right: 8px;
+  vertical-align: middle;
+}
+
+/* 矢印セル */
+.arrow-cell {
+  font-size: 22px;
+  color: #e60012;
+  font-weight: 700;
+}
+
+/* モデル名 */
+.model-name {
+  font-weight: 600;
+  color: #1a1a1a;
+  font-size: 13px;
+  display: block;
+  margin-bottom: 2px;
+}
+
+.model-series {
+  font-size: 11px;
+  color: #888;
+}
+
+/* 省エネ達成率 */
+.energy-badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.energy-badge.below {
+  background: #fff3f3;
+  color: #e60012;
+  border: 1px solid #fcc;
+}
+
+.energy-badge.above {
+  background: #e8f8e8;
+  color: #27ae60;
+  border: 1px solid #b5e8b5;
+}
+
+/* 価格帯 */
+.price-cell {
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.price-cell .price-note {
+  display: block;
+  font-size: 11px;
+  color: #999;
+  margin-top: 2px;
+}
+
+/* 変化量のバッジ */
+.change-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.change-badge.up {
+  background: #fff3e0;
+  color: #e67e22;
+}
+
+.change-badge.down {
+  background: #e8f5e9;
+  color: #27ae60;
+}
+
+/* ============================
+   カード型レイアウト（SP向け代替）
+   ============================ */
+.rankup-cards {
+  display: none;
+}
+
+.rankup-card {
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.07);
+  margin-bottom: 16px;
+  overflow: hidden;
+}
+
+.rankup-card-maker {
+  background: #2c3e50;
+  color: #fff;
+  padding: 8px 14px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.rankup-card-body {
+  padding: 16px;
+}
+
+.rankup-card-row {
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.rankup-card-col {
+  flex: 1;
+  background: #f8f9fa;
+  border-radius: 8px;
+  padding: 12px;
+  text-align: center;
+}
+
+.rankup-card-col.before {
+  border-top: 3px solid #7f8c8d;
+}
+
+.rankup-card-col.after {
+  border-top: 3px solid #e60012;
+}
+
+.rankup-card-col-label {
+  font-size: 11px;
+  color: #888;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.rankup-card-arrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  color: #e60012;
+  font-weight: 700;
+  flex-shrink: 0;
+  width: 30px;
+}
+
+.rankup-card-detail {
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 0;
+  border-bottom: 1px solid #f0f0f0;
+  font-size: 13px;
+}
+
+.rankup-card-detail:last-child {
+  border-bottom: none;
+}
+
+.rankup-card-detail dt {
+  color: #888;
+  font-weight: 500;
+}
+
+.rankup-card-detail dd {
+  font-weight: 600;
+}
+
+/* ============================
+   注釈・補足
+   ============================ */
+.rankup-notes {
+  background: #fffbe6;
+  border: 1px solid #ffe082;
+  border-radius: 8px;
+  padding: 16px 20px;
+  margin: 20px 0 32px;
+  font-size: 13px;
+  color: #555;
+  line-height: 1.8;
+}
+
+.rankup-notes .note-title {
+  font-weight: 700;
+  color: #e67e22;
+  margin-bottom: 6px;
+  font-size: 14px;
+}
+
+.rankup-notes ul {
+  padding-left: 18px;
+  margin: 0;
+}
+
+.rankup-notes li {
+  margin-bottom: 4px;
+}
+
+/* ============================
+   展開型アコーディオン
+   ============================ */
+.accordion-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  background: linear-gradient(135deg, #e60012 0%, #c0000f 100%);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 16px 20px;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  letter-spacing: 0.5px;
+  margin-bottom: 0;
+}
+
+.accordion-trigger:hover {
+  box-shadow: 0 4px 16px rgba(230,0,18,0.3);
+  transform: translateY(-1px);
+}
+
+.accordion-trigger .trigger-icon {
+  font-size: 14px;
+  transition: transform 0.3s ease;
+  flex-shrink: 0;
+  margin-left: 12px;
+}
+
+.accordion-trigger[aria-expanded="true"] .trigger-icon {
+  transform: rotate(180deg);
+}
+
+.accordion-content {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.4s ease;
+}
+
+.accordion-content.is-open {
+  max-height: 3000px;
+}
+
+.accordion-content-inner {
+  padding: 20px 0 0;
+}
+
+/* ============================
+   畳数タブ切替
+   ============================ */
+.tatami-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 20px;
+}
+
+.tatami-tab {
+  background: #f0f0f0;
+  border: 1px solid #ddd;
+  border-radius: 20px;
+  padding: 6px 16px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: #555;
+  font-weight: 500;
+}
+
+.tatami-tab:hover {
+  background: #e8e8e8;
+}
+
+.tatami-tab.active {
+  background: #e60012;
+  color: #fff;
+  border-color: #e60012;
+  font-weight: 600;
+}
+
+.tatami-panel {
+  display: none;
+}
+
+.tatami-panel.active {
+  display: block;
+}
+
+/* ============================
+   提案方式の説明セクション
+   ============================ */
+.proposal-section {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+  padding: 28px 24px;
+  margin-bottom: 32px;
+}
+
+.proposal-section h3 {
+  font-size: 18px;
+  color: #2c3e50;
+  margin-bottom: 16px;
+  padding-bottom: 10px;
+  border-bottom: 2px solid #e60012;
+  display: inline-block;
+}
+
+.proposal-list {
+  list-style: none;
+  padding: 0;
+  counter-reset: proposal;
+}
+
+.proposal-list li {
+  counter-increment: proposal;
+  padding: 16px 16px 16px 56px;
+  position: relative;
+  border-bottom: 1px solid #f0f0f0;
+  margin-bottom: 0;
+}
+
+.proposal-list li:last-child {
+  border-bottom: none;
+}
+
+.proposal-list li::before {
+  content: counter(proposal);
+  position: absolute;
+  left: 12px;
+  top: 16px;
+  width: 30px;
+  height: 30px;
+  background: #e60012;
+  color: #fff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.proposal-list li strong {
+  display: block;
+  font-size: 15px;
+  color: #1a1a1a;
+  margin-bottom: 4px;
+}
+
+.proposal-list li p {
+  font-size: 13px;
+  color: #666;
+  margin: 0;
+  line-height: 1.7;
+}
+
+.recommend-badge {
+  display: inline-block;
+  background: #e60012;
+  color: #fff;
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  margin-left: 8px;
+  vertical-align: middle;
+  font-weight: 600;
+}
+
+/* ============================
+   レスポンシブ
+   ============================ */
+@media (max-width: 768px) {
+  .rankup-table-wrapper {
+    display: none;
+  }
+  .rankup-cards {
+    display: block;
+  }
+  .section-heading {
+    font-size: 18px;
+  }
+  .accordion-trigger {
+    font-size: 14px;
+    padding: 14px 16px;
+  }
+  .tatami-tabs {
+    gap: 4px;
+  }
+  .tatami-tab {
+    padding: 5px 12px;
+    font-size: 12px;
+  }
+  .proposal-section {
+    padding: 20px 16px;
+  }
+}
+</style>
+</head>
+<body>
+
+<div class="page-wrapper">
+
+  <!-- ============================================
+       提案セクション：展開方式の比較
+       ============================================ -->
+  <h2 class="section-heading">機種ランクアップ表の展開方式（提案）</h2>
+  <p class="section-lead">
+    「エアコンの2027年問題」セクション内に<strong>機種ランクアップ表</strong>を展開する方法として、
+    以下の3パターンを提案します。ページの情報量やユーザー体験を考慮し、推奨案を記載しています。
+  </p>
+
+  <div class="proposal-section">
+    <h3>展開方式の比較</h3>
+    <ol class="proposal-list">
+      <li>
+        <strong>アコーディオン（折りたたみ）方式 <span class="recommend-badge">推奨</span></strong>
+        <p>
+          「2027年問題とは」のテキスト直下にボタンを配置し、クリックで表を開閉します。
+          ページの長さを抑えつつ、興味のあるユーザーだけが詳細を確認できるため、
+          既存の記事構成を崩しません。下記「デモA」で実際の動作を確認できます。
+        </p>
+      </li>
+      <li>
+        <strong>畳数別タブ切替方式</strong>
+        <p>
+          6畳用・8畳用・10畳用…とタブで切り替え、畳数ごとのランクアップ対象機種を表示します。
+          畳数が決まっているユーザーには最適ですが、全体像を一覧しにくい点がデメリットです。
+          下記「デモB」で確認できます。
+        </p>
+      </li>
+      <li>
+        <strong>常時展開（インライン）方式</strong>
+        <p>
+          記事の流れの中に直接テーブルを配置します。スクロールだけで全情報を確認できますが、
+          ページが長くなるため、後続セクション（選び方・ランキング等）が押し下げられます。
+          情報量が多い場合は畳数タブと組み合わせるのが効果的です。
+        </p>
+      </li>
+    </ol>
+  </div>
+
+  <!-- ============================================
+       デモA: アコーディオン方式（推奨）
+       ============================================ -->
+  <h2 class="section-heading">デモA：アコーディオン方式（推奨）</h2>
+  <p class="section-lead">
+    「エアコンの2027年問題とは」の説明文の直後に、以下のようなボタンを配置します。<br>
+    ボタンをクリックするとランクアップ表が展開されます。
+  </p>
+
+  <button class="accordion-trigger" aria-expanded="false" onclick="toggleAccordion(this)">
+    <span>機種のランクアップ表を見る（2027年省エネ基準対応）</span>
+    <span class="trigger-icon">&#9660;</span>
+  </button>
+  <div class="accordion-content">
+    <div class="accordion-content-inner">
+
+      <p class="section-lead">
+        省エネ基準達成率100%未満の機種は<strong>販売終了・リニューアル</strong>が予定されています。
+        以下の表では、現行の廃番予定モデルと、その後継となるランクアップ機種を比較しています。
+      </p>
+
+      <!-- PC向けテーブル -->
+      <div class="rankup-table-wrapper">
+        <table class="rankup-table">
+          <thead>
+            <tr>
+              <th>畳数</th>
+              <th class="col-before">現行モデル（廃番予定）</th>
+              <th class="col-before">省エネ達成率</th>
+              <th class="col-before">参考価格帯</th>
+              <th class="col-arrow"></th>
+              <th class="col-after">後継モデル（ランクアップ）</th>
+              <th class="col-after">省エネ達成率</th>
+              <th class="col-after">参考価格帯</th>
+              <th>価格変動</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- ダイキン -->
+            <tr class="maker-row">
+              <td colspan="9"><span class="maker-icon"></span>ダイキン</td>
+            </tr>
+            <tr>
+              <td>6畳</td>
+              <td><span class="model-name">S224ATES</span><span class="model-series">Eシリーズ</span></td>
+              <td><span class="energy-badge below">87%</span></td>
+              <td class="price-cell">59,800円<span class="price-note">税込</span></td>
+              <td class="arrow-cell">&#9654;</td>
+              <td><span class="model-name">S225ATES</span><span class="model-series">Eシリーズ（新）</span></td>
+              <td><span class="energy-badge above">105%</span></td>
+              <td class="price-cell">72,800円<span class="price-note">税込</span></td>
+              <td><span class="change-badge up">+13,000円</span></td>
+            </tr>
+            <tr>
+              <td>10畳</td>
+              <td><span class="model-name">S284ATAS</span><span class="model-series">Aシリーズ</span></td>
+              <td><span class="energy-badge below">92%</span></td>
+              <td class="price-cell">98,800円<span class="price-note">税込</span></td>
+              <td class="arrow-cell">&#9654;</td>
+              <td><span class="model-name">S285ATAS</span><span class="model-series">Aシリーズ（新）</span></td>
+              <td><span class="energy-badge above">107%</span></td>
+              <td class="price-cell">119,800円<span class="price-note">税込</span></td>
+              <td><span class="change-badge up">+21,000円</span></td>
+            </tr>
+            <tr>
+              <td>14畳</td>
+              <td><span class="model-name">S404ATAP</span><span class="model-series">Aシリーズ</span></td>
+              <td><span class="energy-badge below">89%</span></td>
+              <td class="price-cell">148,000円<span class="price-note">税込</span></td>
+              <td class="arrow-cell">&#9654;</td>
+              <td><span class="model-name">S405ATAP</span><span class="model-series">Aシリーズ（新）</span></td>
+              <td><span class="energy-badge above">103%</span></td>
+              <td class="price-cell">172,000円<span class="price-note">税込</span></td>
+              <td><span class="change-badge up">+24,000円</span></td>
+            </tr>
+
+            <!-- 日立 -->
+            <tr class="maker-row">
+              <td colspan="9"><span class="maker-icon"></span>日立</td>
+            </tr>
+            <tr>
+              <td>6畳</td>
+              <td><span class="model-name">RAS-D22N</span><span class="model-series">白くまくん Dシリーズ</span></td>
+              <td><span class="energy-badge below">84%</span></td>
+              <td class="price-cell">54,800円<span class="price-note">税込</span></td>
+              <td class="arrow-cell">&#9654;</td>
+              <td><span class="model-name">RAS-D22P</span><span class="model-series">白くまくん Dシリーズ（新）</span></td>
+              <td><span class="energy-badge above">101%</span></td>
+              <td class="price-cell">67,800円<span class="price-note">税込</span></td>
+              <td><span class="change-badge up">+13,000円</span></td>
+            </tr>
+            <tr>
+              <td>10畳</td>
+              <td><span class="model-name">RAS-AJ28N</span><span class="model-series">白くまくん AJシリーズ</span></td>
+              <td><span class="energy-badge below">90%</span></td>
+              <td class="price-cell">79,800円<span class="price-note">税込</span></td>
+              <td class="arrow-cell">&#9654;</td>
+              <td><span class="model-name">RAS-AJ28P</span><span class="model-series">白くまくん AJシリーズ（新）</span></td>
+              <td><span class="energy-badge above">104%</span></td>
+              <td class="price-cell">96,800円<span class="price-note">税込</span></td>
+              <td><span class="change-badge up">+17,000円</span></td>
+            </tr>
+
+            <!-- 三菱 -->
+            <tr class="maker-row">
+              <td colspan="9"><span class="maker-icon"></span>三菱電機</td>
+            </tr>
+            <tr>
+              <td>6畳</td>
+              <td><span class="model-name">MSZ-GE2224</span><span class="model-series">霧ヶ峰 GEシリーズ</span></td>
+              <td><span class="energy-badge below">88%</span></td>
+              <td class="price-cell">62,800円<span class="price-note">税込</span></td>
+              <td class="arrow-cell">&#9654;</td>
+              <td><span class="model-name">MSZ-GE2225</span><span class="model-series">霧ヶ峰 GEシリーズ（新）</span></td>
+              <td><span class="energy-badge above">102%</span></td>
+              <td class="price-cell">74,800円<span class="price-note">税込</span></td>
+              <td><span class="change-badge up">+12,000円</span></td>
+            </tr>
+            <tr>
+              <td>14畳</td>
+              <td><span class="model-name">MSZ-ZW4024S</span><span class="model-series">霧ヶ峰 Zシリーズ</span></td>
+              <td><span class="energy-badge below">95%</span></td>
+              <td class="price-cell">198,000円<span class="price-note">税込</span></td>
+              <td class="arrow-cell">&#9654;</td>
+              <td><span class="model-name">MSZ-ZW4025S</span><span class="model-series">霧ヶ峰 Zシリーズ（新）</span></td>
+              <td><span class="energy-badge above">110%</span></td>
+              <td class="price-cell">218,000円<span class="price-note">税込</span></td>
+              <td><span class="change-badge up">+20,000円</span></td>
+            </tr>
+
+            <!-- パナソニック -->
+            <tr class="maker-row">
+              <td colspan="9"><span class="maker-icon"></span>パナソニック</td>
+            </tr>
+            <tr>
+              <td>6畳</td>
+              <td><span class="model-name">CS-224DJ</span><span class="model-series">エオリア Jシリーズ</span></td>
+              <td><span class="energy-badge below">86%</span></td>
+              <td class="price-cell">57,800円<span class="price-note">税込</span></td>
+              <td class="arrow-cell">&#9654;</td>
+              <td><span class="model-name">CS-225DJ</span><span class="model-series">エオリア Jシリーズ（新）</span></td>
+              <td><span class="energy-badge above">103%</span></td>
+              <td class="price-cell">69,800円<span class="price-note">税込</span></td>
+              <td><span class="change-badge up">+12,000円</span></td>
+            </tr>
+            <tr>
+              <td>18畳</td>
+              <td><span class="model-name">CS-564DX2</span><span class="model-series">エオリア Xシリーズ</span></td>
+              <td><span class="energy-badge below">93%</span></td>
+              <td class="price-cell">248,000円<span class="price-note">税込</span></td>
+              <td class="arrow-cell">&#9654;</td>
+              <td><span class="model-name">CS-565DX2</span><span class="model-series">エオリア Xシリーズ（新）</span></td>
+              <td><span class="energy-badge above">108%</span></td>
+              <td class="price-cell">278,000円<span class="price-note">税込</span></td>
+              <td><span class="change-badge up">+30,000円</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- SP向けカード -->
+      <div class="rankup-cards">
+        <div class="rankup-card">
+          <div class="rankup-card-maker">ダイキン ― 6畳用</div>
+          <div class="rankup-card-body">
+            <div class="rankup-card-row">
+              <div class="rankup-card-col before">
+                <div class="rankup-card-col-label">現行（廃番予定）</div>
+                <span class="model-name">S224ATES</span>
+                <span class="model-series">Eシリーズ</span>
+              </div>
+              <div class="rankup-card-arrow">&#9654;</div>
+              <div class="rankup-card-col after">
+                <div class="rankup-card-col-label">後継モデル</div>
+                <span class="model-name">S225ATES</span>
+                <span class="model-series">Eシリーズ（新）</span>
+              </div>
+            </div>
+            <dl>
+              <div class="rankup-card-detail">
+                <dt>省エネ達成率</dt>
+                <dd><span class="energy-badge below">87%</span> &#8594; <span class="energy-badge above">105%</span></dd>
+              </div>
+              <div class="rankup-card-detail">
+                <dt>参考価格</dt>
+                <dd>59,800円 &#8594; 72,800円</dd>
+              </div>
+              <div class="rankup-card-detail">
+                <dt>価格変動</dt>
+                <dd><span class="change-badge up">+13,000円</span></dd>
+              </div>
+            </dl>
+          </div>
+        </div>
+
+        <div class="rankup-card">
+          <div class="rankup-card-maker">日立 ― 6畳用</div>
+          <div class="rankup-card-body">
+            <div class="rankup-card-row">
+              <div class="rankup-card-col before">
+                <div class="rankup-card-col-label">現行（廃番予定）</div>
+                <span class="model-name">RAS-D22N</span>
+                <span class="model-series">白くまくん Dシリーズ</span>
+              </div>
+              <div class="rankup-card-arrow">&#9654;</div>
+              <div class="rankup-card-col after">
+                <div class="rankup-card-col-label">後継モデル</div>
+                <span class="model-name">RAS-D22P</span>
+                <span class="model-series">白くまくん Dシリーズ（新）</span>
+              </div>
+            </div>
+            <dl>
+              <div class="rankup-card-detail">
+                <dt>省エネ達成率</dt>
+                <dd><span class="energy-badge below">84%</span> &#8594; <span class="energy-badge above">101%</span></dd>
+              </div>
+              <div class="rankup-card-detail">
+                <dt>参考価格</dt>
+                <dd>54,800円 &#8594; 67,800円</dd>
+              </div>
+              <div class="rankup-card-detail">
+                <dt>価格変動</dt>
+                <dd><span class="change-badge up">+13,000円</span></dd>
+              </div>
+            </dl>
+          </div>
+        </div>
+
+        <div class="rankup-card">
+          <div class="rankup-card-maker">三菱電機 ― 6畳用</div>
+          <div class="rankup-card-body">
+            <div class="rankup-card-row">
+              <div class="rankup-card-col before">
+                <div class="rankup-card-col-label">現行（廃番予定）</div>
+                <span class="model-name">MSZ-GE2224</span>
+                <span class="model-series">霧ヶ峰 GEシリーズ</span>
+              </div>
+              <div class="rankup-card-arrow">&#9654;</div>
+              <div class="rankup-card-col after">
+                <div class="rankup-card-col-label">後継モデル</div>
+                <span class="model-name">MSZ-GE2225</span>
+                <span class="model-series">霧ヶ峰 GEシリーズ（新）</span>
+              </div>
+            </div>
+            <dl>
+              <div class="rankup-card-detail">
+                <dt>省エネ達成率</dt>
+                <dd><span class="energy-badge below">88%</span> &#8594; <span class="energy-badge above">102%</span></dd>
+              </div>
+              <div class="rankup-card-detail">
+                <dt>参考価格</dt>
+                <dd>62,800円 &#8594; 74,800円</dd>
+              </div>
+              <div class="rankup-card-detail">
+                <dt>価格変動</dt>
+                <dd><span class="change-badge up">+12,000円</span></dd>
+              </div>
+            </dl>
+          </div>
+        </div>
+
+        <div class="rankup-card">
+          <div class="rankup-card-maker">パナソニック ― 6畳用</div>
+          <div class="rankup-card-body">
+            <div class="rankup-card-row">
+              <div class="rankup-card-col before">
+                <div class="rankup-card-col-label">現行（廃番予定）</div>
+                <span class="model-name">CS-224DJ</span>
+                <span class="model-series">エオリア Jシリーズ</span>
+              </div>
+              <div class="rankup-card-arrow">&#9654;</div>
+              <div class="rankup-card-col after">
+                <div class="rankup-card-col-label">後継モデル</div>
+                <span class="model-name">CS-225DJ</span>
+                <span class="model-series">エオリア Jシリーズ（新）</span>
+              </div>
+            </div>
+            <dl>
+              <div class="rankup-card-detail">
+                <dt>省エネ達成率</dt>
+                <dd><span class="energy-badge below">86%</span> &#8594; <span class="energy-badge above">103%</span></dd>
+              </div>
+              <div class="rankup-card-detail">
+                <dt>参考価格</dt>
+                <dd>57,800円 &#8594; 69,800円</dd>
+              </div>
+              <div class="rankup-card-detail">
+                <dt>価格変動</dt>
+                <dd><span class="change-badge up">+12,000円</span></dd>
+              </div>
+            </dl>
+          </div>
+        </div>
+      </div>
+
+      <div class="rankup-notes">
+        <div class="note-title">ご注意</div>
+        <ul>
+          <li>上記の型番・価格・省エネ達成率はサンプルデータです。実際の掲載時には最新の情報に差し替えてください。</li>
+          <li>省エネ基準達成率は「目標年度2027年度」基準での数値です。</li>
+          <li>参考価格は時期・在庫状況により変動します。</li>
+          <li>新基準対応モデルの詳細スペックについては各メーカーの公式情報をご確認ください。</li>
+        </ul>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ============================================
+       デモB: 畳数別タブ切替方式
+       ============================================ -->
+  <h2 class="section-heading">デモB：畳数別タブ切替方式</h2>
+  <p class="section-lead">
+    畳数ボタンを押すと、対象の畳数のランクアップ機種のみが表示されます。
+    設置するお部屋が決まっているユーザーに適した方式です。
+  </p>
+
+  <div class="tatami-tabs" role="tablist">
+    <button class="tatami-tab active" onclick="switchTab('6')" role="tab">6畳用</button>
+    <button class="tatami-tab" onclick="switchTab('8')" role="tab">8畳用</button>
+    <button class="tatami-tab" onclick="switchTab('10')" role="tab">10畳用</button>
+    <button class="tatami-tab" onclick="switchTab('14')" role="tab">14畳用</button>
+    <button class="tatami-tab" onclick="switchTab('18')" role="tab">18畳用</button>
+    <button class="tatami-tab" onclick="switchTab('23')" role="tab">23畳用</button>
+  </div>
+
+  <div id="panel-6" class="tatami-panel active">
+    <div class="rankup-table-wrapper">
+      <table class="rankup-table">
+        <thead>
+          <tr>
+            <th>メーカー</th>
+            <th class="col-before">現行モデル</th>
+            <th class="col-before">省エネ達成率</th>
+            <th class="col-arrow"></th>
+            <th class="col-after">後継モデル</th>
+            <th class="col-after">省エネ達成率</th>
+            <th>価格変動目安</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>ダイキン</strong></td>
+            <td><span class="model-name">S224ATES</span><span class="model-series">Eシリーズ</span></td>
+            <td><span class="energy-badge below">87%</span></td>
+            <td class="arrow-cell">&#9654;</td>
+            <td><span class="model-name">S225ATES</span><span class="model-series">Eシリーズ（新）</span></td>
+            <td><span class="energy-badge above">105%</span></td>
+            <td><span class="change-badge up">+1〜2万円</span></td>
+          </tr>
+          <tr>
+            <td><strong>日立</strong></td>
+            <td><span class="model-name">RAS-D22N</span><span class="model-series">白くまくん Dシリーズ</span></td>
+            <td><span class="energy-badge below">84%</span></td>
+            <td class="arrow-cell">&#9654;</td>
+            <td><span class="model-name">RAS-D22P</span><span class="model-series">白くまくん Dシリーズ（新）</span></td>
+            <td><span class="energy-badge above">101%</span></td>
+            <td><span class="change-badge up">+1〜2万円</span></td>
+          </tr>
+          <tr>
+            <td><strong>三菱電機</strong></td>
+            <td><span class="model-name">MSZ-GE2224</span><span class="model-series">霧ヶ峰 GEシリーズ</span></td>
+            <td><span class="energy-badge below">88%</span></td>
+            <td class="arrow-cell">&#9654;</td>
+            <td><span class="model-name">MSZ-GE2225</span><span class="model-series">霧ヶ峰 GEシリーズ（新）</span></td>
+            <td><span class="energy-badge above">102%</span></td>
+            <td><span class="change-badge up">+1〜2万円</span></td>
+          </tr>
+          <tr>
+            <td><strong>パナソニック</strong></td>
+            <td><span class="model-name">CS-224DJ</span><span class="model-series">エオリア Jシリーズ</span></td>
+            <td><span class="energy-badge below">86%</span></td>
+            <td class="arrow-cell">&#9654;</td>
+            <td><span class="model-name">CS-225DJ</span><span class="model-series">エオリア Jシリーズ（新）</span></td>
+            <td><span class="energy-badge above">103%</span></td>
+            <td><span class="change-badge up">+1〜2万円</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <!-- SP向けカードは省略（デモAと同じ構造で畳数ごとにフィルタ） -->
+  </div>
+
+  <div id="panel-8" class="tatami-panel">
+    <div class="rankup-table-wrapper">
+      <table class="rankup-table">
+        <thead>
+          <tr>
+            <th>メーカー</th>
+            <th class="col-before">現行モデル</th>
+            <th class="col-before">省エネ達成率</th>
+            <th class="col-arrow"></th>
+            <th class="col-after">後継モデル</th>
+            <th class="col-after">省エネ達成率</th>
+            <th>価格変動目安</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td colspan="7" style="text-align:center;color:#999;padding:30px;">8畳用のデータはサンプル準備中です（実装時に追加）</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div id="panel-10" class="tatami-panel">
+    <div class="rankup-table-wrapper">
+      <table class="rankup-table">
+        <thead>
+          <tr>
+            <th>メーカー</th>
+            <th class="col-before">現行モデル</th>
+            <th class="col-before">省エネ達成率</th>
+            <th class="col-arrow"></th>
+            <th class="col-after">後継モデル</th>
+            <th class="col-after">省エネ達成率</th>
+            <th>価格変動目安</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>ダイキン</strong></td>
+            <td><span class="model-name">S284ATAS</span><span class="model-series">Aシリーズ</span></td>
+            <td><span class="energy-badge below">92%</span></td>
+            <td class="arrow-cell">&#9654;</td>
+            <td><span class="model-name">S285ATAS</span><span class="model-series">Aシリーズ（新）</span></td>
+            <td><span class="energy-badge above">107%</span></td>
+            <td><span class="change-badge up">+2〜3万円</span></td>
+          </tr>
+          <tr>
+            <td><strong>日立</strong></td>
+            <td><span class="model-name">RAS-AJ28N</span><span class="model-series">白くまくん AJシリーズ</span></td>
+            <td><span class="energy-badge below">90%</span></td>
+            <td class="arrow-cell">&#9654;</td>
+            <td><span class="model-name">RAS-AJ28P</span><span class="model-series">白くまくん AJシリーズ（新）</span></td>
+            <td><span class="energy-badge above">104%</span></td>
+            <td><span class="change-badge up">+1〜2万円</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div id="panel-14" class="tatami-panel">
+    <div class="rankup-table-wrapper">
+      <table class="rankup-table">
+        <thead>
+          <tr>
+            <th>メーカー</th>
+            <th class="col-before">現行モデル</th>
+            <th class="col-before">省エネ達成率</th>
+            <th class="col-arrow"></th>
+            <th class="col-after">後継モデル</th>
+            <th class="col-after">省エネ達成率</th>
+            <th>価格変動目安</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td colspan="7" style="text-align:center;color:#999;padding:30px;">14畳用のデータはサンプル準備中です（実装時に追加）</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div id="panel-18" class="tatami-panel">
+    <div class="rankup-table-wrapper">
+      <table class="rankup-table">
+        <thead>
+          <tr>
+            <th>メーカー</th>
+            <th class="col-before">現行モデル</th>
+            <th class="col-before">省エネ達成率</th>
+            <th class="col-arrow"></th>
+            <th class="col-after">後継モデル</th>
+            <th class="col-after">省エネ達成率</th>
+            <th>価格変動目安</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td colspan="7" style="text-align:center;color:#999;padding:30px;">18畳用のデータはサンプル準備中です（実装時に追加）</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div id="panel-23" class="tatami-panel">
+    <div class="rankup-table-wrapper">
+      <table class="rankup-table">
+        <thead>
+          <tr>
+            <th>メーカー</th>
+            <th class="col-before">現行モデル</th>
+            <th class="col-before">省エネ達成率</th>
+            <th class="col-arrow"></th>
+            <th class="col-after">後継モデル</th>
+            <th class="col-after">省エネ達成率</th>
+            <th>価格変動目安</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td colspan="7" style="text-align:center;color:#999;padding:30px;">23畳用のデータはサンプル準備中です（実装時に追加）</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ============================================
+       実装ガイド
+       ============================================ -->
+  <h2 class="section-heading">既存ページへの組み込み方法</h2>
+  <div class="proposal-section">
+    <h3>組み込み手順</h3>
+    <ol class="proposal-list">
+      <li>
+        <strong>CSSの追加</strong>
+        <p>
+          本ファイルの &lt;style&gt; タグ内にあるランクアップ表関連のCSSを、
+          aircon.html の既存スタイルシート（または外部CSSファイル）に追記します。
+        </p>
+      </li>
+      <li>
+        <strong>HTMLの挿入位置</strong>
+        <p>
+          「エアコンの2027年問題とは」セクションの説明文（「〜お買い得なエアコンが減少する可能性が指摘されています。」）の
+          直後に、アコーディオンボタンとランクアップ表のHTMLブロックを挿入します。
+        </p>
+      </li>
+      <li>
+        <strong>JavaScriptの追加</strong>
+        <p>
+          アコーディオン開閉用の toggleAccordion() 関数を、ページ下部の &lt;script&gt; タグ内、
+          または外部JSファイルに追記します。
+        </p>
+      </li>
+      <li>
+        <strong>データの差し替え</strong>
+        <p>
+          サンプルの型番・価格・省エネ達成率を、実際の最新データに差し替えます。
+          データ量が多い場合はJSON等で管理し、JavaScriptで動的に生成する方法も検討してください。
+        </p>
+      </li>
+    </ol>
+  </div>
+
+</div>
+
+<script>
+function toggleAccordion(btn) {
+  const content = btn.nextElementSibling;
+  const isOpen = content.classList.contains('is-open');
+
+  if (isOpen) {
+    content.classList.remove('is-open');
+    btn.setAttribute('aria-expanded', 'false');
+  } else {
+    content.classList.add('is-open');
+    btn.setAttribute('aria-expanded', 'true');
+  }
+}
+
+function switchTab(size) {
+  document.querySelectorAll('.tatami-tab').forEach(function(tab) {
+    tab.classList.remove('active');
+    if (tab.textContent.includes(size + '畳')) {
+      tab.classList.add('active');
+    }
+  });
+  document.querySelectorAll('.tatami-panel').forEach(function(panel) {
+    panel.classList.remove('active');
+  });
+  var target = document.getElementById('panel-' + size);
+  if (target) {
+    target.classList.add('active');
+  }
+}
+</script>
+
+</body>
+</html>
