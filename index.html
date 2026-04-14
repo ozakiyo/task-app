@@ -398,6 +398,69 @@ const filtered = tasks.filter(task => {
   </div>
 
     <script>
+      // ============================================================
+      // SecureValue: inputのvalueを「ページのソースを表示」から隠すユーティリティ
+      //
+      // 【仕組み】
+      //   「ページのソースを表示」(Ctrl+U) はサーバーが返した生HTMLを表示する。
+      //   → HTMLに <input value="秘密"> と書くとそのまま見える。
+      //   → JavaScriptで input.value = "秘密" とセットした値はソースに映らない。
+      //     （DevToolsの「要素を検証」では見えるが、ソース表示には出ない）
+      //
+      // 【使い方】
+      //   方法1: JSで動的にvalueをセットする（最もシンプル）
+      //     SecureValue.set(inputElement, "秘密の値");
+      //
+      //   方法2: サーバー側でBase64エンコードしてdata属性に埋め込み、
+      //          JSでデコードしてvalueにセットする
+      //     HTML: <input type="hidden" id="token" data-sv="44GC44GE44GG44GI44GK">
+      //     JS:   SecureValue.decode(document.getElementById("token"));
+      //
+      //   方法3: hidden inputの代わりにJS変数/sessionStorageを使う
+      //     SecureValue.store("tokenKey", "秘密の値");
+      //     const val = SecureValue.retrieve("tokenKey");
+      // ============================================================
+      const SecureValue = {
+        set(inputEl, value) {
+          inputEl.value = value;
+        },
+
+        encode(value) {
+          return btoa(unescape(encodeURIComponent(value)));
+        },
+
+        decodeValue(encoded) {
+          return decodeURIComponent(escape(atob(encoded)));
+        },
+
+        decode(inputEl) {
+          const encoded = inputEl.dataset.sv;
+          if (encoded) {
+            inputEl.value = this.decodeValue(encoded);
+            inputEl.removeAttribute("data-sv");
+          }
+        },
+
+        store(key, value) {
+          sessionStorage.setItem("__sv_" + key, this.encode(value));
+        },
+
+        retrieve(key) {
+          const encoded = sessionStorage.getItem("__sv_" + key);
+          if (!encoded) return null;
+          return this.decodeValue(encoded);
+        },
+
+        createHiddenInput(name, value, form) {
+          const input = document.createElement("input");
+          input.type = "hidden";
+          input.name = name;
+          input.value = value;
+          if (form) form.appendChild(input);
+          return input;
+        }
+      };
+
       const taskInput = document.getElementById("taskInput");
        /*詳細説明*/
       const descInput = document.getElementById("descInput");
@@ -754,21 +817,21 @@ const filtered = tasks.filter(task => {
         li.innerHTML = "";
         const textInput = document.createElement("input");
         textInput.type = "text";
-        textInput.value = task.text;
+        SecureValue.set(textInput, task.text);
         textInput.className = "edit-input";
         textInput.placeholder = "タスク名";
 
         //---詳細説明---
         const descInput = document.createElement("input");
         descInput.type = "text";
-        descInput.value = task.description || "";
+        SecureValue.set(descInput, task.description || "");
         descInput.className = "edit-input";
         descInput.placeholder = "詳細説明";
 
         //---期限---
         const dueInput = document.createElement("input");
         dueInput.type = "date";
-        dueInput.value = task.dueDate || "";
+        SecureValue.set(dueInput, task.dueDate || "");
 
         //---優先度---
         const prioritySelect = document.createElement("select");
