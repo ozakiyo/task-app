@@ -398,6 +398,37 @@ const filtered = tasks.filter(task => {
   </div>
 
     <script>
+      /**
+       * input要素にvalueをセットしつつ、HTML属性としてのvalueを除去する。
+       * 「ページのソースを表示」やDOMインスペクターに生の値が表示されなくなる。
+       *
+       * - element.value = val  → DOMプロパティのみ更新（View Sourceに出ない）
+       * - removeAttribute('value') → HTMLソース上の value="" 属性を除去
+       */
+      function setSecureValue(element, val) {
+        element.value = val;
+        element.removeAttribute("value");
+      }
+
+      /**
+       * サーバーからBase64エンコードされた値を data-encoded-value 属性で
+       * 受け取り、JSでデコードしてDOMプロパティにセットするパターン。
+       *
+       * 使用例（HTML側）:
+       *   <input type="hidden" data-encoded-value="44OG44K544OI" id="secretField">
+       *
+       * 使用例（JS側）:
+       *   decodeSecureData(document.getElementById("secretField"));
+       */
+      function decodeSecureData(element) {
+        const encoded = element.getAttribute("data-encoded-value");
+        if (encoded) {
+          element.value = decodeURIComponent(atob(encoded));
+          element.removeAttribute("data-encoded-value");
+          element.removeAttribute("value");
+        }
+      }
+
       const taskInput = document.getElementById("taskInput");
        /*詳細説明*/
       const descInput = document.getElementById("descInput");
@@ -457,7 +488,7 @@ const filtered = tasks.filter(task => {
           deleteCategorySelector.appendChild(opt3);
         }
         if(categories.length>0){
-          categorySelector.value = categories[0];
+          setSecureValue(categorySelector, categories[0]);
         }
       }
 
@@ -468,7 +499,7 @@ const filtered = tasks.filter(task => {
           return;
         }
         categories.push(newCat);
-        newCategoryInput.value = "";
+        setSecureValue(newCategoryInput, "");
         localStorage.setItem("categories",JSON.stringify(categories));
         renderCategories();
       });
@@ -498,7 +529,7 @@ const filtered = tasks.filter(task => {
 
         renderCategories();
         renderTasks();
-        deleteCategorySelector.value = "";
+        setSecureValue(deleteCategorySelector, "");
       });
 
       //---タスク一覧の表示---
@@ -728,9 +759,9 @@ const filtered = tasks.filter(task => {
           addBtn.textContent = "追加";
 
         }
-        taskInput.value = "";
-        descInput.value = "";//クリア
-        dueDateInput.value = ""; //期限入力もリセット
+        setSecureValue(taskInput, "");
+        setSecureValue(descInput, "");
+        setSecureValue(dueDateInput, "");
         saveTasks();
         renderTasks();
       });
@@ -754,21 +785,21 @@ const filtered = tasks.filter(task => {
         li.innerHTML = "";
         const textInput = document.createElement("input");
         textInput.type = "text";
-        textInput.value = task.text;
+        setSecureValue(textInput, task.text);
         textInput.className = "edit-input";
         textInput.placeholder = "タスク名";
 
         //---詳細説明---
         const descInput = document.createElement("input");
         descInput.type = "text";
-        descInput.value = task.description || "";
+        setSecureValue(descInput, task.description || "");
         descInput.className = "edit-input";
         descInput.placeholder = "詳細説明";
 
         //---期限---
         const dueInput = document.createElement("input");
         dueInput.type = "date";
-        dueInput.value = task.dueDate || "";
+        setSecureValue(dueInput, task.dueDate || "");
 
         //---優先度---
         const prioritySelect = document.createElement("select");
@@ -861,7 +892,7 @@ const filtered = tasks.filter(task => {
       //---検索イベント---
       searchInput.addEventListener("input", renderTasks);
       searchClearBtn.addEventListener("click", function(){
-        searchInput.value = "";
+        setSecureValue(searchInput, "");
         renderTasks();
       });
 
