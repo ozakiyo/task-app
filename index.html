@@ -27,6 +27,8 @@
         min-height: 100vh;
         font-family: "Hiragino Sans", "Yu Gothic", "Noto Sans JP", sans-serif;
         color: var(--text);
+        position: relative;
+        overflow-x: hidden;
         background:
           radial-gradient(circle at top right, rgba(214, 228, 255, 0.18), transparent 24%),
           radial-gradient(circle at 20% 20%, rgba(130, 164, 255, 0.16), transparent 28%),
@@ -45,9 +47,12 @@
         filter: blur(1px);
         opacity: 0.85;
         pointer-events: none;
+        z-index: 0;
       }
 
       main {
+        position: relative;
+        z-index: 1;
         width: min(900px, calc(100% - 2rem));
         margin: 0 auto;
         padding: 5rem 0 4rem;
@@ -83,28 +88,12 @@
       }
 
       .sutra {
-        position: relative;
         padding: 2rem;
         border: 1px solid var(--panel-border);
         border-radius: 28px;
         background: var(--panel);
         box-shadow: var(--shadow);
         backdrop-filter: blur(12px);
-      }
-
-      .sutra::after {
-        content: "";
-        position: absolute;
-        inset: 0;
-        border-radius: inherit;
-        padding: 1px;
-        background: linear-gradient(145deg, rgba(255, 255, 255, 0.3), transparent 35%, rgba(158, 197, 255, 0.22));
-        -webkit-mask:
-          linear-gradient(#000 0 0) content-box,
-          linear-gradient(#000 0 0);
-        -webkit-mask-composite: xor;
-        mask-composite: exclude;
-        pointer-events: none;
       }
 
       .section-number {
