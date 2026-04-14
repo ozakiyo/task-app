@@ -1,888 +1,245 @@
-<!--
-概要
-LocalStorageを活用したタスク管理アプリケーションを 開発してください。
-
-必須要件
-1. 基本機能
- タスクの追加、編集、削除
- タスクの完了/未完了の切り替え
- すべてのデータをLocalStorageに永続化
- OK
-
-2. 高度な機能
- 優先度設定（高・中・低）と色分け表示
- 期限設定と期限切れの視覚的な表示
- カテゴリ分け（仕事、プライベート、勉強など、自由に追加可能）
- 検索機能（タスク名での部分一致検索）
- フィルター機能
-完了/未完了での絞り込み
-優先度での絞り込み
-カテゴリでの絞り込み
- ソート機能
-作成日時順
-期限順
-優先度順
-3. データ構造
-各タスクは最低限以下の情報を持つこと：
-
-javascript
-
-{
-  id: number,           // 一意のID
-  title: string,        // タスク名
-  description: string,  // 詳細説明（任意）
-  priority: string,     // 'high' | 'medium' | 'low'
-  category: string,     // カテゴリ名
-  dueDate: string,      // 期限(日付)
-  completed: boolean,   // 完了状態
-  createdAt: string,    // 作成日時
-  updatedAt: string     // 更新日時
-}
-
-ヒント
-LocalStorageの基本操作
-javascript
-
-// 保存
-localStorage.setItem('key', JSON.stringify(data));
-
-// 読み込み
-const data = JSON.parse(localStorage.getItem('key'));
-
-// 削除
-localStorage.removeItem('key');
-
-// すべて削除
-localStorage.clear();
-データ構造の設計例
-javascript
-
-// 全体のデータ構造
-{
-  tasks: [...],           // タスクの配列
-  categories: [...],      // カテゴリの配列
-  settings: {...}         // 設定情報
-}
-期限切れの判定
-javascript
-
-const isOverdue = new Date(task.dueDate) < new Date();
-フィルタリングの実装例
-javascript
-
-const filtered = tasks.filter(task => {
-  // 複数条件での絞り込み
-  return (
-    task.completed === filterCompleted &&
-    task.priority === filterPriority &&
-    task.category === filterCategory
-  );
-});
-
-デザインが整わない。コードの全て見直しから
-
-
--->
 <!DOCTYPE html>
 <html lang="ja">
   <head>
     <meta charset="UTF-8">
-<title>LocalStorageを活用したタスク管理アプリケーション</title>
-<style>
-  body{
-    background-color: #f5f6fa;
-    padding:0;
-    margin:0;
-  }
-  header{
-    background-color: #007bff;
-    color:white;
-    padding:20px 0;
-    text-align:center;
-    font-size:1.6em;
-    box-shadow:0 3px 8px rgba(0,0,0,0.15);
-    font-weight:600;
-    letter-spacing:1px;
-  }
-  nav{
-    background-color:#FFF;
-    display:flex;
-    justify-content: center;
-    gap:10px;
-    padding:10px 0;
-    box-shadow:0 2px 6px rgba(0,0,0,0.08);
-    position: sticky;
-    top:0;
-    z-index:100;
-  }
-  nav button{
-    background-color:transparent;
-    border:none;
-    color:#333;
-    padding:8px 18px;
-    font-size:15px;
-    cursor:pointer;
-    border-radius:25px;
-    transition:all 0.2s ease;
-  }
-  nav button.active, nav button:hover{
-    background-color: #007bff;
-    color:#FFF;
-    box-shadow:0 2px 6px rgba(0,123,255,0.3);
-  }
-
-  .container{
-    max-width:700px;
-    background:#FFF;
-    padding:25px 30px;
-    border-radius:15px;
-    margin:30px auto;
-    box-shadow:0 5px 15px rgba(0,0,0,0.1);
-  }
-  h1{
-    text-align:center;
-    color:#333;
-    margin-bottom:20px;
-  }
-
-  .input-area,
-  .search-area,
-  .filter-area,
-  .sort-area,
-  .category-area,
-  .category-delete-area{
-    display:flex;
-    flex-wrap:wrap;
-    align-items:center;
-    gap:10px;
-    margin-bottom:25px;
-    margin-top:5px;
-  }
-  input[type="text"],
-  input[type="date"],
-  select{
-    flex:1;
-    padding:8px 10px;
-    border:1px solid #CCC;
-    border-radius:8px;
-    font-size:14px;
-    transition:border-color 0.2s;
-  }
-  input:focus,
-  select:focus{
-    outline:none;
-    border-color:#007bff;
-    box-shadow:0 0 4px rgba(0,123,255,0.3);
-  }
-
-  button{
-    padding:8px 14px;
-    border:none;
-    border-radius:6px;
-    cursor:pointer;
-    background-color: #007bff;
-    color:white;
-    font-size:14px;
-    transition:background 0.2s,transform 0.1s;
-  }
-  button:hover{
-    background-color:#0056b3;
-    transform:translateY(-1px);
-  }
-  ul{
-    list-style:none;
-    padding:0;
-    margin:0;
-  }
-  li{
-    background:white;
-    margin-bottom:12px;
-    padding:14px 16px;
-    border-radius:10px;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
-    display:flex;
-    flex-direction: column;
-    gap:5px;
-    transition:transform 0.2s,box-shadow 0.2s;
-  }
-  li:hover{
-    transform:translateY(-3px);
-    box-shadow:0 3px 8px rgba(0,0,0,0.12);
-  }
-  .task-main-row{
-    display:flex;
-    align-items:center;
-    gap:6px;
-    justify-content: space-between;
-    flex-wrap:wrap;
-    gap:6px;
-  }
-  .task-buttons button{
-    padding:5px 8px;
-    font-size:12px;
-    border-radius:4px;
-    background-color: #6c757d;
-  }
-  .task-buttons button:hover{
-    background-color: #495057;;
-  }
-
-  li.completed span{
-    text-decoration:line-through;
-    color:#aaa;
-  }
-  /*期限関連のスタイル*/
-  .due-date{
-    font-size:12px;
-    color:#555;
-  }
-  /*優先度色分け表示*/
-  .high{
-    border-left:8px solid #e74c3c;
-  }
-  .medium{
-    border-left:8px solid #f39c12;
-  }
-  .low{
-    border-left:8px solid #27ae60;
-  }
-
-/* ===============================
-   期限状態
-=============================== */
-  .overdue{
-    background-color:#fff0f0;
-  }
-  .due-today{
-    background-color:#fffbe6;
-  }
-
-/* ===============================
-   カテゴリバッジ
-=============================== */
-.category-badge{
-  background-color: #eef1f5;
-  border-radius:12px;
-  padding:3px 8px;
-  font-size:12px;
-  color:#333;
-  font-weight:500;
-}
-
-/* ===============================
-   編集モード
-=============================== */
-  .task-buttons button{
-    margin-left:5px;
-    font-size:12px;
-    padding:5px 10px;
-  }
-  .edit-input{
-    flex:1;
-    margin-right:10px;
-    padding:8px;
-    border:1px solid #ccc;
-    border-radious:5px;
-  }
-/* ===============================
-   セクション見出しデザイン
-=============================== */
-.section-title{
-  font-size:1.1em;
-  font-weight:600;
-  color:#007bff;
-  margin:25px 0 10px;
-  padding-left:10px;
-  border-left:4px solid #007bff;
-  background-color: #f0f8ff;
-  border-radius:6px;
-  padding:6px 10px;
-  letter-spacing:0.5px;
-}
-  
-/* ===============================
-   レスポンシブ対応
-=============================== */
-  @media(max-width:600px){
-    nav{
-      flex-wrap:wrap;
-    }
-    .input-area,
-    .filter-area,
-    .sort-area,
-    .category-area,
-    .category-delete-area{
-      flex-direction:column;
-      align-items:stretch;
-    }
-    button{
-      width:100%;
-    }
-  }
-
-</style>
-</head>
-<body>
-  <header>タスク管理アプリ</header>
-  <div class="container">
-    <h2 class="section-title">タスク追加</h2>
-    <div class="input-area">
-      <input type="text" id="taskInput" placeholder="タスクを入力">
-
-      <!--詳細説明-->
-      <input type="text" id="descInput" placeholder="詳細説明(任意)">
-      <input type="date" id="dueDateInput">
-
-      <!--優先度色分け表示-->
-      <select id="prioritySelector">
-        <option value="high">高</option>
-        <option value="medium" selected>中</option>
-        <option value="low">低</option>
-      </select>
-
-      <!--カテゴリ追加欄-->
-      <select id="categorySelector"></select>
-      <button id="addBtn">追加</button>
-    </div>
-
-    <!--カテゴリ追加欄-->
-    <h2 class="section-title">カテゴリ管理</h2>
-    <div class="category-area">
-      <input type="text" id="newCategoryInput" placeholder="新しいカテゴリを入力">
-      <button id="addCategoryBtn">カテゴリ追加</button>
-    </div>
-
-    <!---カテゴリ削除--->
-    <div class="category-delete-area">
-      <select id="deleteCategorySelector"></select>
-      <button id="deleteCategoryBtn">カテゴリ削除</button>
-    </div>
-
-    <!--検索機能-->
-    <h2 class="section-title">タスク検索</h2>
-    <div class="search-area">
-      <input type="text" id="searchInput" placeholder="タスクを検索">
-      <button id="searchClearBtn">クリア</button>
-    </div>
-
-    <!--フィルタ機能-->
-    <h2 class="section-title">タスクフィルタ</h2>
-    <div class="filter-area">
-      <select id="filterStatus">
-        <option value="all">すべて</option>
-        <option value="completed">完了のみ</option>
-        <option value="incomplete">未完了のみ</option>
-      </select>
-      <select id="filterPriority">
-        <option value="all">全優先度</option>
-        <option value="high">高</option>
-        <option value="medium">中</option>
-        <option value="low">低</option>
-      </select>
-      <select id="filterCategory">
-        <option value="all">全カテゴリ</option>
-      </select>
-    </div>
-
-    <!--ソート機能-->
-    <h2 class="section-title">タスク並び替え</h2>
-    <div class="sort-area">
-      <select id="sortSelector">
-        <option value="created">作成日時順</option>
-        <option value="dueDate">期限順</option>
-        <option value="priority">優先度順</option>
-      </select>
-    </div>
-
-    <ul id="taskList"></ul>
-  </div>
-
-    <script>
-      const taskInput = document.getElementById("taskInput");
-       /*詳細説明*/
-      const descInput = document.getElementById("descInput");
-      const addBtn = document.getElementById("addBtn");
-      const taskList = document.getElementById("taskList");
-      /*優先度色分け表示*/
-      const prioritySelector = document.getElementById("prioritySelector");
-      /*期限表示*/
-      const dueDateInput = document.getElementById("dueDateInput");
-      /*カテゴリ追加*/
-      const categorySelector = document.getElementById("categorySelector");
-      const newCategoryInput = document.getElementById("newCategoryInput");
-      const addCategoryBtn = document.getElementById("addCategoryBtn");
-      /*カテゴリ削除*/
-      const deleteCategorySelector = document.getElementById("deleteCategorySelector");
-      const deleteCategoryBtn = document.getElementById("deleteCategoryBtn");
-      /*検索機能*/
-      const searchInput = document.getElementById("searchInput");
-      const searchClearBtn = document.getElementById("searchClearBtn");
-      /*フィルター*/
-      const filterStatus = document.getElementById("filterStatus");
-      const filterPriority = document.getElementById("filterPriority");
-      const filterCategory = document.getElementById("filterCategory");
-      /*ソート機能*/
-      const sortSelector = document.getElementById("sortSelector");
-     
-      //---LocalStrageからデータ読み込み---
-      let data = JSON.parse(localStorage.getItem("key")) || [];
-      let categories = JSON.parse(localStorage.getItem("categories")) || ["仕事","プライベート","その他"];
-      let editIndex = null; //編集中のインデックスを保持
-      let currentView = "all";
-
-      //---カテゴリ表示更新---
-      function renderCategories(){
-        categorySelector.innerHTML = "";
-        filterCategory.innerHTML = '<option value="all">全カテゴリ</option>';
-        deleteCategorySelector.innerHTML = "";
-        for(let i=0;i<categories.length;i++){
-          const category = categories[i];
-
-          //タスク追加用カテゴリ選択欄
-          const opt1 = document.createElement("option");
-          opt1.value = category;
-          opt1.textContent = category;
-          categorySelector.appendChild(opt1);
-
-          //フィルタ選択用カテゴリ選択欄
-          const opt2 = document.createElement("option");
-          opt2.value = category;
-          opt2.textContent = category;
-          filterCategory.appendChild(opt2);
-
-          //カテゴリ削除
-          const opt3 = document.createElement("option");
-          opt3.value = category;
-          opt3.textContent = category;
-          deleteCategorySelector.appendChild(opt3);
-        }
-        if(categories.length>0){
-          categorySelector.value = categories[0];
-        }
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>9. 月〔の天子〕の経</title>
+    <style>
+      :root {
+        --bg: #07111f;
+        --bg-accent: #12233f;
+        --panel: rgba(10, 18, 31, 0.82);
+        --panel-border: rgba(176, 203, 255, 0.22);
+        --text: #f5f7fb;
+        --muted: #bac6dc;
+        --accent: #9ec5ff;
+        --accent-strong: #d9e8ff;
+        --quote-bg: rgba(158, 197, 255, 0.1);
+        --shadow: 0 24px 80px rgba(0, 0, 0, 0.4);
       }
 
-      //---カテゴリ追加---
-      addCategoryBtn.addEventListener("click", function(){
-        const newCat = newCategoryInput.value.trim();
-        if(newCat === "" || categories.includes(newCat)){
-          return;
-        }
-        categories.push(newCat);
-        newCategoryInput.value = "";
-        localStorage.setItem("categories",JSON.stringify(categories));
-        renderCategories();
-      });
-
-      //---カテゴリ削除処理
-      deleteCategoryBtn.addEventListener("click", function(){
-        const targetCat = deleteCategorySelector.value;
-        if(!targetCat){
-          return;
-        }
-        //「その他」を削除しようとしたらブロック
-        if(targetCat === "その他"){
-          alert("「その他」カテゴリは削除できません");
-          return;
-        }
-        //タスクに削除カテゴリがあれば「その他」に振替
-        for(let i=0;i<data.length;i++){
-          if(data[i].category === targetCat){
-            data[i].category = "その他";
-          }
-        }
-        //カテゴリを削除
-        categories = categories.filter(cat => cat !== targetCat);
-        //保存
-        localStorage.setItem("categories",JSON.stringify(categories));
-        saveTasks();
-
-        renderCategories();
-        renderTasks();
-        deleteCategorySelector.value = "";
-      });
-
-      //---タスク一覧の表示---
-      function renderTasks(){
-        taskList.innerHTML = "";
-        //---期限関連　今日の日付(YYYY-MM-DD)---
-        const today = new Date().toISOString().slice(0,10);
-        //---検索キーワード---
-        const keyword = searchInput.value.trim().toLowerCase();
-
-        //---ソート処理---
-        let sortedData = [...data];//元データをコピー
-        const sortType = sortSelector.value;
-        if(sortType === "created"){
-          //作成日時順（新しい順）
-          sortedData.sort((a,b)=>new Date(b.createdAt) - new Date(a.createdAt));
-        }else if(sortType === "dueDate"){
-          //期限順（古い順）期限なしは後ろへ
-          sortedData.sort((a,b)=>{
-            if(!a.dueDate){
-              return 1;
-            }
-            if(!b.dueDate){
-              return -1;
-            }
-            return new Date(a.dueDate) - new Date(b.dueDate); 
-          });
-        }else if(sortType==="priority"){
-          //優先度順（高い順）
-          const order = {high: 1,medium: 2, low:3};
-          sortedData.sort((a,b)=>order[a.priority]-order[b.priority]);
-        }
-
-        for(let index=0;index<sortedData.length;index++){
-          const task = sortedData[index];
-
-          //---検索キーワードに部分一致しない場合はスキップ---
-          if(keyword && !task.text.toLowerCase().includes(keyword)){
-            continue;
-          }
-
-          //---フィルタ適用---
-          if(filterStatus.value === "completed" && !task.completed){
-            continue;
-          }
-          if(filterStatus.value === "incomplete" && task.completed){
-            continue;
-          }
-          if(filterPriority.value !== "all" && task.priority !== filterPriority.value){
-            continue;
-          }
-          if(filterCategory.value !== "all" && task.category !== filterCategory.value){
-            continue;
-          }
-          if(currentView === "today" && task.dueDate !== today){
-            continue;
-          }
-          if(currentView === "completed" && !task.completed){
-            continue;
-          }
-
-          const li = document.createElement("li");
-          
-          //---完了状態---
-          if(task.completed){
-            li.classList.add("completed");
-          }
-          //---優先度色分け表示---
-          li.classList.add(task.priority);
-
-          //---期限判定---
-          if(task.dueDate){
-            if(task.dueDate<today){
-              li.classList.add("overdue");
-            }else if(task.dueDate === today){
-              li.classList.add("due-today");
-            }
-          }
-
-          //ソート後のタスク(task)に対応する、元の data 配列での位置を探す
-          let originalIndex = -1;
-          for(let i=0;i<data.length;i++){
-            if(data[i].id === task.id){
-              originalIndex = i;
-              break;
-            }
-          }
-
-          //---作成日・更新日---
-          const topInfo = document.createElement("div");
-          topInfo.classList.add("task-top-info");
-
-          if(task.updatedAt){
-            const updated = new Date(task.updatedAt);
-            if(!isNaN(updated)){
-              topInfo.textContent = `更新日：${updated.toLocaleDateString("ja-JP")}`;
-            }
-          }else if(task.createdAt){
-              const created = new Date(task.createdAt);
-              if(!isNaN(created)){
-                topInfo.textContent = `作成日：${created.toLocaleDateString("ja-JP")}`;
-              }
-          }
-          li.appendChild(topInfo); 
-
-          //---チェックボックス作成---
-          const checkbox = document.createElement("input");
-          checkbox.type = "checkbox";
-          checkbox.checked = task.completed;
-          checkbox.addEventListener("change", function(){
-            toggleTask(originalIndex);
-          });
-
-          //---テキスト---
-          const span = document.createElement("span");
-          span.textContent = task.text;
-          span.addEventListener("click", function(){
-            toggleTask(originalIndex);
-          });
-
-          //---詳細説明---
-          const descSpan = document.createElement("div");
-          descSpan.textContent = task.description || "";
-          descSpan.style.fontSize = "12px";
-          descSpan.style.color = "#555";
-          descSpan.style.marginLeft = "25px";
-
-          //---カテゴリ表示---
-          const catSpan = document.createElement("span");
-          catSpan.classList.add("category-badge");
-          catSpan.textContent = task.category || "未分類";
-
-          //---期限表示---
-          const dueSpan = document.createElement("span");
-          dueSpan.classList.add("due-date");
-          if(task.dueDate){
-            dueSpan.textContent = `期限：${task.dueDate}`;
-          }
-
-          //---ボタンエリア---
-          const buttonArea = document.createElement("div");
-          buttonArea.classList.add("task-buttons");
-
-          //---編集ボタン---
-          const editBtn = document.createElement("button");
-          editBtn.textContent = "編集";
-          editBtn.addEventListener("click", function(){
-            editTask(originalIndex,li);
-          });
-
-          //---削除ボタン---
-          const delBtn = document.createElement("button");
-          delBtn.textContent = "削除";
-          delBtn.addEventListener("click", function(){
-            deleteTask(originalIndex);
-          });
-
-          buttonArea.appendChild(editBtn); //詳細説明編集ボタン
-          buttonArea.appendChild(delBtn);
-
-          //---チェックボックスを左に配置---
-          const titleRow = document.createElement("div");
-          titleRow.classList.add("task-main-row");
-          titleRow.appendChild(checkbox);
-          titleRow.appendChild(span);
-
-          const infoRow = document.createElement("div");
-          infoRow.classList.add("task-main-row");
-          /*詳細説明*/
-          infoRow.appendChild(descSpan);
-          /*カテゴリ表示*/
-          infoRow.appendChild(catSpan);
-          /*期限表示*/
-          infoRow.appendChild(dueSpan);
-
-          const buttonRow = document.createElement("div");
-          buttonRow.classList.add("task-main-row");
-          buttonRow.appendChild(buttonArea);
-
-          li.appendChild(titleRow);
-          li.appendChild(infoRow);
-          li.appendChild(buttonRow);
-
-          taskList.appendChild(li);
-        }
+      * {
+        box-sizing: border-box;
       }
 
-      //---LocalStorageに保存---
-      function saveTasks(){
-        localStorage.setItem("key", JSON.stringify(data));
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: "Hiragino Sans", "Yu Gothic", "Noto Sans JP", sans-serif;
+        color: var(--text);
+        background:
+          radial-gradient(circle at top right, rgba(214, 228, 255, 0.18), transparent 24%),
+          radial-gradient(circle at 20% 20%, rgba(130, 164, 255, 0.16), transparent 28%),
+          linear-gradient(180deg, #0a1730 0%, var(--bg) 45%, #040913 100%);
       }
 
-      //---タスク追加---
-      addBtn.addEventListener("click", function(){
-        const text = taskInput.value.trim();
-        /*詳細説明*/
-        const description = descInput.value.trim();
-        /*優先度色分け表示*/
-        const priority = prioritySelector.value;
-        /*入力された期限を取得*/
-        const dueDate = dueDateInput.value;
-        /*カテゴリ*/
-        const category = categorySelector.value;
-        if(text === ""){
-          return;
-        }
-        if(editIndex === null){
-          data.push({
-            id: Date.now(), //一意のID
-            text, 
-            description: description || "", //詳細説明
-            completed: false, 
-            priority, 
-            dueDate, 
-            category,
-            createdAt: new Date().toISOString(),
-            updatedAt: null, //更新日
-            updated: false //作成日、更新日を判別フラグ
-
-          });/*priority 優先度色分け表示, dueDate 期限表示,category カテゴリ追加,createdAt 作成日時*/
-        }else{
-          data[editIndex].text = text;
-          data[editIndex].description = description;
-          data[editIndex].dueDate = dueDate;
-          data[editIndex].category = category;
-          editIndex = null;
-          addBtn.textContent = "追加";
-
-        }
-        taskInput.value = "";
-        descInput.value = "";//クリア
-        dueDateInput.value = ""; //期限入力もリセット
-        saveTasks();
-        renderTasks();
-      });
-
-      //---タスク削除---
-      function deleteTask(index){
-        data.splice(index, 1);
-        saveTasks();
-        renderTasks();
+      body::before {
+        content: "";
+        position: fixed;
+        inset: 3rem auto auto 8%;
+        width: 11rem;
+        height: 11rem;
+        border-radius: 50%;
+        background:
+          radial-gradient(circle at 35% 35%, #ffffff 0%, #f2f7ff 28%, #d7e6ff 58%, rgba(215, 230, 255, 0.18) 72%, transparent 75%);
+        filter: blur(1px);
+        opacity: 0.85;
+        pointer-events: none;
       }
 
-      //---タスク編集---
-      function editTask(index,li){
-        const task = data[index];
-
-        //編集モード
-        li.classList.add("editing");
-        li.innerHTML = "";
-
-        //---編集モード表示---
-        li.innerHTML = "";
-        const textInput = document.createElement("input");
-        textInput.type = "text";
-        textInput.value = task.text;
-        textInput.className = "edit-input";
-        textInput.placeholder = "タスク名";
-
-        //---詳細説明---
-        const descInput = document.createElement("input");
-        descInput.type = "text";
-        descInput.value = task.description || "";
-        descInput.className = "edit-input";
-        descInput.placeholder = "詳細説明";
-
-        //---期限---
-        const dueInput = document.createElement("input");
-        dueInput.type = "date";
-        dueInput.value = task.dueDate || "";
-
-        //---優先度---
-        const prioritySelect = document.createElement("select");
-        const priorities = ["high","medium","low"];
-        for(let i=0;i<priorities.length;i++){
-          const p = priorities[i];
-          const opt = document.createElement("option");
-          if(p === "high"){
-            opt.textContent = "高";
-          }else if(p === "medium"){
-            opt.textContent = "中";
-          }else{
-            opt.textContent = "低";
-          }
-
-          //値を設定
-          opt.value = p;
-
-          //現在のタスクの優先度と一致していれば選択状態に
-          if(p===task.priority){
-            opt.selected = true;
-          }
-
-          //selectに追加
-          prioritySelect.appendChild(opt);
-        }
-        
-        //---カテゴリ---
-        const categorySelect = document.createElement("select");
-        for(let i=0;i<categories.length;i++){
-          const cat = categories[i];
-          const opt = document.createElement("option");
-
-          //値と表示文字を設定
-          opt.value = cat;
-          opt.textContent = cat;
-
-          //現在のカテゴリと一致していれば選択状態に
-          if(cat === task.category){
-            opt.selected = true;
-          }
-
-          //selectに追加
-          categorySelect.appendChild(opt);
-        }
-
-        //保存ボタン
-        const saveBtn = document.createElement("button");
-        saveBtn.textContent = "保存";
-        saveBtn.addEventListener("click", function(){
-          const newText = textInput.value.trim();
-          if(newText === ""){
-            alert("タスク名を入力してください");
-            return;
-          }
-          data[index].text = newText;
-          data[index].description = descInput.value;
-          data[index].dueDate = dueInput.value;
-          data[index].priority = prioritySelect.value;
-          data[index].category = categorySelect.value;
-          data[index].updatedAt = new Date().toISOString();//更新日保存
-          data[index].updated = true; //更新フラグを立てる
-          saveTasks();
-          renderTasks();
-        });
-
-        const cancelBtn = document.createElement("button");
-        cancelBtn.textContent = "キャンセル";
-        cancelBtn.addEventListener("click", function(){
-          renderTasks();
-        });
-
-        //---編集フォームを構築---
-        li.appendChild(textInput);
-        li.appendChild(descInput);
-        li.appendChild(dueInput);
-        li.appendChild(prioritySelect);
-        li.appendChild(categorySelect);
-        li.appendChild(saveBtn);
-        li.appendChild(cancelBtn);
+      main {
+        width: min(900px, calc(100% - 2rem));
+        margin: 0 auto;
+        padding: 5rem 0 4rem;
       }
 
-      //---完了・未完了の切り替え---
-      function toggleTask(index){
-        data[index].completed = !data[index].completed;
-        saveTasks();
-        renderTasks();
+      .hero {
+        margin-bottom: 2rem;
+        padding: 2rem 0 1rem;
       }
 
-      //---検索イベント---
-      searchInput.addEventListener("input", renderTasks);
-      searchClearBtn.addEventListener("click", function(){
-        searchInput.value = "";
-        renderTasks();
-      });
+      .kicker {
+        margin: 0 0 0.5rem;
+        font-size: 0.9rem;
+        letter-spacing: 0.22em;
+        text-transform: uppercase;
+        color: var(--accent);
+      }
 
-      //---フィルター変更イベント---
-      filterStatus.addEventListener("change", renderTasks);
-      //---優先順位変更イベント---
-      filterPriority.addEventListener("change", renderTasks);
-      //---フィルター変更イベント---
-      filterCategory.addEventListener("change", renderTasks);
-      //---ソート変更イベント---
-      sortSelector.addEventListener("change", renderTasks);
+      h1 {
+        margin: 0;
+        font-size: clamp(2.2rem, 5vw, 4rem);
+        line-height: 1.1;
+        font-weight: 700;
+        letter-spacing: 0.03em;
+      }
 
-      //---初期表示---
-      /*初期表示時呼び出し*/
-      renderCategories();
-      renderTasks();
-      
+      .subtitle {
+        margin: 1rem 0 0;
+        max-width: 42rem;
+        color: var(--muted);
+        font-size: 1rem;
+        line-height: 1.9;
+      }
 
-    </script>
- </body>
- </html>
+      .sutra {
+        position: relative;
+        padding: 2rem;
+        border: 1px solid var(--panel-border);
+        border-radius: 28px;
+        background: var(--panel);
+        box-shadow: var(--shadow);
+        backdrop-filter: blur(12px);
+      }
 
+      .sutra::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        border-radius: inherit;
+        padding: 1px;
+        background: linear-gradient(145deg, rgba(255, 255, 255, 0.3), transparent 35%, rgba(158, 197, 255, 0.22));
+        -webkit-mask:
+          linear-gradient(#000 0 0) content-box,
+          linear-gradient(#000 0 0);
+        -webkit-mask-composite: xor;
+        mask-composite: exclude;
+        pointer-events: none;
+      }
 
+      .section-number {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 3.3rem;
+        height: 3.3rem;
+        margin-bottom: 1.5rem;
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        border-radius: 999px;
+        color: var(--accent-strong);
+        background: rgba(255, 255, 255, 0.06);
+        font-size: 1.25rem;
+        font-weight: 700;
+      }
 
+      .lead,
+      .body-text {
+        margin: 0 0 1.25rem;
+        font-size: 1.05rem;
+        line-height: 2.1;
+        color: var(--text);
+      }
+
+      .speaker-block {
+        margin: 2rem 0;
+        padding: 1.4rem 1.5rem;
+        border-radius: 22px;
+        background: var(--quote-bg);
+        border: 1px solid rgba(158, 197, 255, 0.18);
+      }
+
+      .speaker-label {
+        display: inline-block;
+        margin: 0 0 0.9rem;
+        color: var(--accent);
+        font-size: 0.95rem;
+        letter-spacing: 0.04em;
+      }
+
+      blockquote {
+        margin: 0;
+        padding-left: 1rem;
+        border-left: 3px solid rgba(217, 232, 255, 0.45);
+        color: var(--accent-strong);
+      }
+
+      blockquote p {
+        margin: 0;
+        font-size: 1.08rem;
+        line-height: 2;
+      }
+
+      .closing {
+        margin-top: 2rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid rgba(255, 255, 255, 0.12);
+      }
+
+      @media (max-width: 640px) {
+        main {
+          padding-top: 3.25rem;
+        }
+
+        .sutra {
+          padding: 1.4rem;
+          border-radius: 22px;
+        }
+
+        .speaker-block {
+          padding: 1.1rem;
+        }
+
+        .lead,
+        .body-text,
+        blockquote p {
+          font-size: 1rem;
+          line-height: 1.95;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header class="hero">
+        <p class="kicker">9</p>
+        <h1>月〔の天子〕の経</h1>
+        <p class="subtitle">
+          月の天子が阿修羅のラーフに捕捉されたとき、世尊への随念によって救済へ向かう一節を、地の文と詩偈を分けて読みやすく整えています。
+        </p>
+      </header>
+
+      <article class="sutra" aria-labelledby="sutra-section">
+        <div class="section-number" aria-hidden="true">90</div>
+        <p id="sutra-section" class="lead">
+          サーヴァッティーの因縁となります。また、まさに、その時点にあって、月の天子が、阿修羅のインダ（権力者）たるラーフラに捕捉された状態でいます（月食）。そこで、まさに、月の天子は、世尊を随念しながら、その時に、この詩偈を語りました。
+        </p>
+
+        <section class="speaker-block" aria-labelledby="deva-verse">
+          <p id="deva-verse" class="speaker-label">〔天子が、詩偈に言う〕</p>
+          <blockquote>
+            <p>「覚者よ、勇者よ、あなたに、礼拝が存せ。〔あなたは〕一切所に解脱者として存しています。〔わたしは〕煩いのうちに〔道を〕行く者として存しています。〔まさに〕その、わたしの、帰依所と成れ」と。</p>
+          </blockquote>
+        </section>
+
+        <p class="body-text">
+          そこで、まさに、世尊は、月の天子に関して、阿修羅のインダたるラーフに、詩偈をもって語りかけました。
+        </p>
+
+        <section class="speaker-block" aria-labelledby="buddha-verse">
+          <p id="buddha-verse" class="speaker-label">〔世尊が、詩偈に言う〕</p>
+          <blockquote>
+            <p>「月〔の天子〕は、帰依所として、阿羅漢たる如来のもとに赴いたのです。ラーフよ、月〔の天子〕を解き放ちなさい。覚者たちは、世〔の人々〕に慈しみ〔の思い〕ある者たちです」と。</p>
+          </blockquote>
+        </section>
+
+        <p class="body-text">
+          そこで、まさに、阿修羅のインダたるラーフは、月の天子を解き放って、急ぎの様子で、阿修羅のインダたるヴェーパチッティのいるところに、そこへと近づいて行きました。近づいて行って、畏怖する者となり、身の毛のよだちを生じ、一方に立ちました。一方に立った、まさに、阿修羅のインダたるラーフに、阿修羅のインダたるヴェーパチッティは、詩偈をもって語りかけました。
+        </p>
+
+        <section class="speaker-block" aria-labelledby="vepacitti-verse">
+          <p id="vepacitti-verse" class="speaker-label">〔ヴェーパチッティが、詩偈に言う〕</p>
+          <blockquote>
+            <p>「ラーフよ、いったい、どうして、まさしく、急ぎながら、月〔の天子〕を解き放ったのだ。畏怖する様子でやってきて、いったい、どうして、まさしく、恐怖し、〔あなたは〕立つのだ」と。</p>
+          </blockquote>
+        </section>
+
+        <section class="speaker-block closing" aria-labelledby="rahu-verse">
+          <p id="rahu-verse" class="speaker-label">〔ラーフが、詩偈に言う〕</p>
+          <blockquote>
+            <p>「わたしの頭は、七様に裂けるであろう──生きているとして、〔もはや〕安楽を得ないであろう──覚者に詩偈を唱えられた者として存するのに、もし、月〔の天子〕を解き放たないなら」と。</p>
+          </blockquote>
+        </section>
+      </article>
+    </main>
+  </body>
+</html>
