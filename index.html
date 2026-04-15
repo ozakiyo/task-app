@@ -87,6 +87,7 @@ const filtered = tasks.filter(task => {
 <html lang="ja">
   <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>LocalStorageを活用したタスク管理アプリケーション</title>
 <style>
   body{
@@ -331,7 +332,7 @@ const filtered = tasks.filter(task => {
 
       <!--詳細説明-->
       <input type="text" id="descInput" placeholder="詳細説明(任意)">
-      <input type="date" id="dueDateInput">
+      <input type="datetime-local" id="dueDateInput">
 
       <!--優先度色分け表示-->
       <select id="prioritySelector">
@@ -504,8 +505,10 @@ const filtered = tasks.filter(task => {
       //---タスク一覧の表示---
       function renderTasks(){
         taskList.innerHTML = "";
-        //---期限関連　今日の日付(YYYY-MM-DD)---
-        const today = new Date().toISOString().slice(0,10);
+        //---期限関連　現在の日時---
+        const now = new Date();
+        const today = now.toISOString().slice(0,10);
+        const todayEnd = new Date(today + "T23:59:59");
         //---検索キーワード---
         const keyword = searchInput.value.trim().toLowerCase();
 
@@ -553,7 +556,7 @@ const filtered = tasks.filter(task => {
           if(filterCategory.value !== "all" && task.category !== filterCategory.value){
             continue;
           }
-          if(currentView === "today" && task.dueDate !== today){
+          if(currentView === "today" && (!task.dueDate || task.dueDate.slice(0,10) !== today)){
             continue;
           }
           if(currentView === "completed" && !task.completed){
@@ -571,9 +574,11 @@ const filtered = tasks.filter(task => {
 
           //---期限判定---
           if(task.dueDate){
-            if(task.dueDate<today){
+            const dueDateTime = new Date(task.dueDate);
+            const dueDateStr = task.dueDate.slice(0,10);
+            if(dueDateTime < now){
               li.classList.add("overdue");
-            }else if(task.dueDate === today){
+            }else if(dueDateStr === today){
               li.classList.add("due-today");
             }
           }
@@ -635,7 +640,14 @@ const filtered = tasks.filter(task => {
           const dueSpan = document.createElement("span");
           dueSpan.classList.add("due-date");
           if(task.dueDate){
-            dueSpan.textContent = `期限：${task.dueDate}`;
+            const d = new Date(task.dueDate);
+            if(!isNaN(d)){
+              const dateStr = d.toLocaleDateString("ja-JP");
+              const timeStr = d.toLocaleTimeString("ja-JP",{hour:"2-digit",minute:"2-digit"});
+              dueSpan.textContent = `期限：${dateStr} ${timeStr}`;
+            }else{
+              dueSpan.textContent = `期限：${task.dueDate}`;
+            }
           }
 
           //---ボタンエリア---
@@ -767,7 +779,7 @@ const filtered = tasks.filter(task => {
 
         //---期限---
         const dueInput = document.createElement("input");
-        dueInput.type = "date";
+        dueInput.type = "datetime-local";
         dueInput.value = task.dueDate || "";
 
         //---優先度---
