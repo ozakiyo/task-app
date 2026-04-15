@@ -87,6 +87,9 @@ const filtered = tasks.filter(task => {
 <html lang="ja">
   <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>LocalStorageを活用したタスク管理アプリケーション</title>
 <style>
   body{
@@ -301,22 +304,91 @@ const filtered = tasks.filter(task => {
 }
   
 /* ===============================
-   レスポンシブ対応
+   期限解除ボタン
+=============================== */
+.clear-due-btn{
+  background-color:#e67e22 !important;
+}
+.clear-due-btn:hover{
+  background-color:#d35400 !important;
+}
+
+/* ===============================
+   時刻入力
+=============================== */
+input[type="time"]{
+  flex:1;
+  padding:8px 10px;
+  border:1px solid #CCC;
+  border-radius:8px;
+  font-size:14px;
+  transition:border-color 0.2s;
+}
+input[type="time"]:focus{
+  outline:none;
+  border-color:#007bff;
+  box-shadow:0 0 4px rgba(0,123,255,0.3);
+}
+
+/* ===============================
+   レスポンシブ対応（iPhone向け強化）
 =============================== */
   @media(max-width:600px){
     nav{
       flex-wrap:wrap;
     }
+    .container{
+      margin:15px 10px;
+      padding:15px;
+      border-radius:10px;
+    }
     .input-area,
     .filter-area,
     .sort-area,
     .category-area,
-    .category-delete-area{
+    .category-delete-area,
+    .search-area{
       flex-direction:column;
       align-items:stretch;
     }
+    input[type="text"],
+    input[type="date"],
+    input[type="time"],
+    select{
+      width:100%;
+      min-width:0;
+      box-sizing:border-box;
+      font-size:16px;
+      padding:10px 12px;
+    }
     button{
       width:100%;
+      padding:12px 14px;
+      font-size:15px;
+    }
+    .task-buttons{
+      display:flex;
+      gap:6px;
+      flex-wrap:wrap;
+    }
+    .task-buttons button{
+      flex:1;
+      min-width:60px;
+      padding:8px 6px;
+      font-size:13px;
+    }
+    header{
+      font-size:1.2em;
+      padding:15px 0;
+    }
+    .section-title{
+      font-size:1em;
+    }
+    li{
+      padding:12px;
+    }
+    .task-main-row{
+      gap:8px;
     }
   }
 
@@ -332,6 +404,7 @@ const filtered = tasks.filter(task => {
       <!--詳細説明-->
       <input type="text" id="descInput" placeholder="詳細説明(任意)">
       <input type="date" id="dueDateInput">
+      <input type="time" id="dueTimeInput" placeholder="時刻">
 
       <!--優先度色分け表示-->
       <select id="prioritySelector">
@@ -407,6 +480,8 @@ const filtered = tasks.filter(task => {
       const prioritySelector = document.getElementById("prioritySelector");
       /*期限表示*/
       const dueDateInput = document.getElementById("dueDateInput");
+      /*時刻入力*/
+      const dueTimeInput = document.getElementById("dueTimeInput");
       /*カテゴリ追加*/
       const categorySelector = document.getElementById("categorySelector");
       const newCategoryInput = document.getElementById("newCategoryInput");
@@ -569,12 +644,24 @@ const filtered = tasks.filter(task => {
           //---優先度色分け表示---
           li.classList.add(task.priority);
 
-          //---期限判定---
+          //---期限判定（時刻がある場合は時刻も考慮）---
           if(task.dueDate){
-            if(task.dueDate<today){
+            if(task.dueDate < today){
               li.classList.add("overdue");
             }else if(task.dueDate === today){
-              li.classList.add("due-today");
+              if(task.dueTime){
+                const now = new Date();
+                const [h,m] = task.dueTime.split(":").map(Number);
+                const dueDateTime = new Date();
+                dueDateTime.setHours(h,m,0,0);
+                if(now > dueDateTime){
+                  li.classList.add("overdue");
+                }else{
+                  li.classList.add("due-today");
+                }
+              }else{
+                li.classList.add("due-today");
+              }
             }
           }
 
@@ -635,7 +722,11 @@ const filtered = tasks.filter(task => {
           const dueSpan = document.createElement("span");
           dueSpan.classList.add("due-date");
           if(task.dueDate){
-            dueSpan.textContent = `期限：${task.dueDate}`;
+            let dueText = `期限：${task.dueDate}`;
+            if(task.dueTime){
+              dueText += ` ${task.dueTime}`;
+            }
+            dueSpan.textContent = dueText;
           }
 
           //---ボタンエリア---
@@ -649,6 +740,19 @@ const filtered = tasks.filter(task => {
             editTask(originalIndex,li);
           });
 
+          //---期限解除ボタン---
+          const clearDueBtn = document.createElement("button");
+          clearDueBtn.textContent = "期限解除";
+          clearDueBtn.classList.add("clear-due-btn");
+          clearDueBtn.addEventListener("click", function(){
+            data[originalIndex].dueDate = "";
+            data[originalIndex].dueTime = "";
+            data[originalIndex].updatedAt = new Date().toISOString();
+            data[originalIndex].updated = true;
+            saveTasks();
+            renderTasks();
+          });
+
           //---削除ボタン---
           const delBtn = document.createElement("button");
           delBtn.textContent = "削除";
@@ -656,7 +760,10 @@ const filtered = tasks.filter(task => {
             deleteTask(originalIndex);
           });
 
-          buttonArea.appendChild(editBtn); //詳細説明編集ボタン
+          buttonArea.appendChild(editBtn);
+          if(task.dueDate || task.dueTime){
+            buttonArea.appendChild(clearDueBtn);
+          }
           buttonArea.appendChild(delBtn);
 
           //---チェックボックスを左に配置---
@@ -700,6 +807,8 @@ const filtered = tasks.filter(task => {
         const priority = prioritySelector.value;
         /*入力された期限を取得*/
         const dueDate = dueDateInput.value;
+        /*入力された時刻を取得*/
+        const dueTime = dueTimeInput.value;
         /*カテゴリ*/
         const category = categorySelector.value;
         if(text === ""){
@@ -707,30 +816,31 @@ const filtered = tasks.filter(task => {
         }
         if(editIndex === null){
           data.push({
-            id: Date.now(), //一意のID
+            id: Date.now(),
             text, 
-            description: description || "", //詳細説明
+            description: description || "",
             completed: false, 
             priority, 
             dueDate, 
+            dueTime: dueTime || "",
             category,
             createdAt: new Date().toISOString(),
-            updatedAt: null, //更新日
-            updated: false //作成日、更新日を判別フラグ
-
-          });/*priority 優先度色分け表示, dueDate 期限表示,category カテゴリ追加,createdAt 作成日時*/
+            updatedAt: null,
+            updated: false
+          });
         }else{
           data[editIndex].text = text;
           data[editIndex].description = description;
           data[editIndex].dueDate = dueDate;
+          data[editIndex].dueTime = dueTime || "";
           data[editIndex].category = category;
           editIndex = null;
           addBtn.textContent = "追加";
-
         }
         taskInput.value = "";
-        descInput.value = "";//クリア
-        dueDateInput.value = ""; //期限入力もリセット
+        descInput.value = "";
+        dueDateInput.value = "";
+        dueTimeInput.value = "";
         saveTasks();
         renderTasks();
       });
@@ -769,6 +879,11 @@ const filtered = tasks.filter(task => {
         const dueInput = document.createElement("input");
         dueInput.type = "date";
         dueInput.value = task.dueDate || "";
+
+        //---時刻---
+        const timeInput = document.createElement("input");
+        timeInput.type = "time";
+        timeInput.value = task.dueTime || "";
 
         //---優先度---
         const prioritySelect = document.createElement("select");
@@ -827,10 +942,11 @@ const filtered = tasks.filter(task => {
           data[index].text = newText;
           data[index].description = descInput.value;
           data[index].dueDate = dueInput.value;
+          data[index].dueTime = timeInput.value || "";
           data[index].priority = prioritySelect.value;
           data[index].category = categorySelect.value;
-          data[index].updatedAt = new Date().toISOString();//更新日保存
-          data[index].updated = true; //更新フラグを立てる
+          data[index].updatedAt = new Date().toISOString();
+          data[index].updated = true;
           saveTasks();
           renderTasks();
         });
@@ -845,6 +961,7 @@ const filtered = tasks.filter(task => {
         li.appendChild(textInput);
         li.appendChild(descInput);
         li.appendChild(dueInput);
+        li.appendChild(timeInput);
         li.appendChild(prioritySelect);
         li.appendChild(categorySelect);
         li.appendChild(saveBtn);
