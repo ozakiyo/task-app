@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>10. 日〔の天子〕の経 — 相応部</title>
+  <style>
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+    }
+
+    body {
+      background-color: #f8f5ef;
+      color: #2c2c2c;
+      font-family: "Noto Serif JP", "Yu Mincho", "游明朝", Georgia, serif;
+      line-height: 1.9;
+      margin: 0;
+      padding: 0;
+    }
+
+    header {
+      background-color: #4a3728;
+      color: #f5e9d0;
+      padding: 20px 0;
+      text-align: center;
+      font-size: 1.05em;
+      letter-spacing: 0.08em;
+      box-shadow: 0 3px 8px rgba(0,0,0,0.25);
+    }
+
+    header a {
+      color: #d4b896;
+      text-decoration: none;
+      font-size: 0.9em;
+      margin-right: 10px;
+    }
+
+    header a:hover {
+      text-decoration: underline;
+    }
+
+    .breadcrumb {
+      font-size: 0.82em;
+      color: #b8a080;
+      letter-spacing: 0.05em;
+    }
+
+    .hero {
+      background: linear-gradient(135deg, #3d2b1a 0%, #6b4c30 100%);
+      color: #f5e9d0;
+      text-align: center;
+      padding: 60px 20px 50px;
+    }
+
+    .hero .sutta-number {
+      font-size: 0.95em;
+      letter-spacing: 0.15em;
+      color: #c8a87a;
+      margin-bottom: 12px;
+    }
+
+    .hero h1 {
+      font-size: 2.1em;
+      margin: 0 0 14px;
+      letter-spacing: 0.1em;
+      font-weight: 700;
+    }
+
+    .hero .subtitle {
+      font-size: 0.95em;
+      color: #d4b896;
+      letter-spacing: 0.06em;
+    }
+
+    .container {
+      max-width: 760px;
+      margin: 40px auto 60px;
+      padding: 0 24px;
+    }
+
+    .nidana-box {
+      background: #fff8ef;
+      border-left: 5px solid #b07d3a;
+      border-radius: 0 10px 10px 0;
+      padding: 18px 22px;
+      margin-bottom: 36px;
+      font-size: 0.97em;
+      color: #4a3520;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    }
+
+    .nidana-box .label {
+      font-size: 0.78em;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      color: #b07d3a;
+      margin-bottom: 6px;
+      text-transform: uppercase;
+    }
+
+    .verse-block {
+      background: #fffdf5;
+      border: 1px solid #ddd0b8;
+      border-radius: 12px;
+      padding: 28px 32px;
+      margin: 28px 0;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+      position: relative;
+    }
+
+    .verse-block::before {
+      content: "\201C";
+      position: absolute;
+      top: -14px;
+      left: 22px;
+      font-size: 2.2em;
+      color: #b07d3a;
+      line-height: 1;
+    }
+
+    .verse-speaker {
+      font-size: 0.82em;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      color: #8a6030;
+      margin-bottom: 10px;
+    }
+
+    .verse-block p {
+      margin: 0;
+      font-size: 1.05em;
+      line-height: 2.0;
+      color: #2e2010;
+    }
+
+    .prose p {
+      margin: 0 0 1.4em;
+      font-size: 1.0em;
+      text-align: justify;
+      text-justify: inter-ideograph;
+    }
+
+    .prose p:last-child {
+      margin-bottom: 0;
+    }
+
+    .divider {
+      text-align: center;
+      color: #b07d3a;
+      font-size: 1.2em;
+      margin: 32px 0;
+      letter-spacing: 0.3em;
+    }
+
+    .uddana-box {
+      background: #f5f0e5;
+      border: 1px solid #d4c8a8;
+      border-radius: 10px;
+      padding: 22px 26px;
+      margin: 36px 0 0;
+      font-size: 0.93em;
+      color: #4a3520;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+
+    .uddana-box .label {
+      font-size: 0.78em;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      color: #8a6030;
+      margin-bottom: 8px;
+    }
+
+    footer {
+      background-color: #3a2a1c;
+      color: #a08060;
+      text-align: center;
+      padding: 20px;
+      font-size: 0.82em;
+      letter-spacing: 0.05em;
+    }
+
+    footer a {
+      color: #c8a87a;
+      text-decoration: none;
+    }
+
+    footer a:hover {
+      text-decoration: underline;
+    }
+
+    @media (max-width: 600px) {
+      .hero h1 {
+        font-size: 1.55em;
+      }
+
+      .verse-block {
+        padding: 20px 18px;
+      }
+
+      .container {
+        padding: 0 14px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="breadcrumb">
+    <a href="index.html">&larr; ホーム</a>
+    相応部（サンユッタ・ニカーヤ）／天子相応
+  </div>
+</header>
+
+<div class="hero">
+  <div class="sutta-number">第 10 経</div>
+  <h1>日〔の天子〕の経</h1>
+  <div class="subtitle">Suriya-sutta &mdash; Sa&#7747;yutta Nik&#257;ya 2.10</div>
+</div>
+
+<div class="container">
+
+  <!-- 因縁 -->
+  <div class="nidana-box">
+    <div class="label">因縁</div>
+    サーヴァッティーの因縁となります。
+  </div>
+
+  <!-- 本文：状況説明 -->
+  <div class="prose">
+    <p>
+      また、まさに、その時点にあって、日の天子が、阿修羅のインダ（権力者）たるラーフラに捕捉された状態でいます（日食）。そこで、まさに、日の天子は、世尊を随念しながら、その時に、この詩偈を語りました。
+    </p>
+  </div>
+
+  <!-- 天子の詩偈 -->
+  <div class="verse-block">
+    <div class="verse-speaker">〔天子が、詩偈に言う〕</div>
+    <p>
+      「覚者よ、勇者よ、あなたに、礼拝が存せ。<br>
+      〔あなたは〕一切所に解脱者として存しています。<br>
+      〔わたしは〕煩いのうちに〔道を〕行く者として存しています。<br>
+      〔まさに〕その、わたしの、帰依所と成れ」と。
+    </p>
+  </div>
+
+  <div class="prose">
+    <p>
+      そこで、まさに、世尊は、日の天子に関して、阿修羅のインダたるラーフに、詩偈をもって語りかけました。
+    </p>
+  </div>
+
+  <!-- 世尊の詩偈 -->
+  <div class="verse-block">
+    <div class="verse-speaker">〔世尊が、詩偈に言う〕</div>
+    <p>
+      「日〔の天子〕は、帰依所として、阿羅漢たる如来のもとに赴いたのです。<br>
+      ラーフよ、日〔の天子〕を解き放ちなさい。<br>
+      覚者たちは、世〔の人々〕に慈しみ〔の思い〕ある者たちです。
+    </p>
+    <p>
+      彼（日の天子）は、暗黒の闇における光の作り手にして、<br>
+      遍照する日輪の気高き威光ある者です。<br>
+      ラーフよ、空中を歩みながら、〔彼を〕飲み込んではいけません。<br>
+      ラーフよ、わたしの子孫である日〔の天子〕を解き放ちなさい」と。
+    </p>
+  </div>
+
+  <div class="prose">
+    <p>
+      そこで、まさに、阿修羅のインダたるラーフは、日の天子を解き放って、急ぎの様子で、阿修羅のインダたるヴェーパチッティのいるところに、そこへと近づいて行きました。近づいて行って、畏怖する者となり、身の毛のよだちを生じ、一方に立ちました。一方に立った、まさに、阿修羅のインダたるラーフに、阿修羅のインダたるヴェーパチッティは、詩偈をもって語りかけました。
+    </p>
+  </div>
+
+  <!-- ヴェーパチッティの詩偈 -->
+  <div class="verse-block">
+    <div class="verse-speaker">〔ヴェーパチッティが、詩偈に言う〕</div>
+    <p>
+      「ラーフよ、いったい、どうして、まさしく、急ぎながら、日〔の天子〕を解き放ったのだ。<br>
+      畏怖する様子でやってきて、いったい、どうして、まさしく、恐怖し、〔あなたは〕立つのだ」と。
+    </p>
+  </div>
+
+  <!-- ラーフの返答 -->
+  <div class="verse-block">
+    <div class="verse-speaker">〔ラーフが、詩偈に言う〕</div>
+    <p>
+      「わたしの頭は、七様に裂けるであろう──<br>
+      生きているとして、〔もはや〕安楽を得ないであろう──<br>
+      覚者に詩偈を唱えられた者として存するのに、<br>
+      もし、日〔の天子〕を解き放たないなら」と。
+    </p>
+  </div>
+
+  <div class="divider">— 第一の章 了 —</div>
+
+  <!-- 摂頌 -->
+  <div class="uddana-box">
+    <div class="label">摂頌（うだーな）</div>
+    <div class="verse-block" style="margin:12px 0 0; background:transparent; border:none; box-shadow:none; padding:10px 0;">
+      <p>
+        「そして、二つのカッサパ、さらに、マーガ、マーガダ、<br>
+        ダーマリ、カーマダ、パンチャーラ・チャンダ、ターヤナがあり、<br>
+        月〔の天子〕と日〔の天子〕とともに、それらの十がある」と。
+      </p>
+    </div>
+  </div>
+
+</div><!-- /.container -->
+
+<footer>
+  <p>
+    相応部（サンユッタ・ニカーヤ）天子相応 第10経 日〔の天子〕の経<br>
+    <a href="index.html">&larr; ホームに戻る</a>
+  </p>
+</footer>
+
+</body>
+</html>
