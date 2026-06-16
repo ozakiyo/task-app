@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>25. 比丘品 — ダンマパダ</title>
+  <style>
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+    }
+
+    body {
+      background-color: #f8f5ef;
+      color: #2c2c2c;
+      font-family: "Noto Serif JP", "Yu Mincho", "游明朝", Georgia, serif;
+      line-height: 1.9;
+      margin: 0;
+      padding: 0;
+    }
+
+    header {
+      background-color: #4a3728;
+      color: #f5e9d0;
+      padding: 20px 0;
+      text-align: center;
+      font-size: 1.05em;
+      letter-spacing: 0.08em;
+      box-shadow: 0 3px 8px rgba(0,0,0,0.25);
+    }
+
+    header a {
+      color: #d4b896;
+      text-decoration: none;
+      font-size: 0.9em;
+      margin-right: 10px;
+    }
+
+    header a:hover {
+      text-decoration: underline;
+    }
+
+    .breadcrumb {
+      font-size: 0.82em;
+      color: #b8a080;
+      letter-spacing: 0.05em;
+    }
+
+    .hero {
+      background: linear-gradient(135deg, #3d2b1a 0%, #6b4c30 100%);
+      color: #f5e9d0;
+      text-align: center;
+      padding: 60px 20px 50px;
+    }
+
+    .hero .chapter-number {
+      font-size: 0.95em;
+      letter-spacing: 0.15em;
+      color: #c8a87a;
+      margin-bottom: 12px;
+    }
+
+    .hero h1 {
+      font-size: 2.1em;
+      margin: 0 0 14px;
+      letter-spacing: 0.1em;
+      font-weight: 700;
+    }
+
+    .hero .subtitle {
+      font-size: 0.95em;
+      color: #d4b896;
+      letter-spacing: 0.06em;
+    }
+
+    .container {
+      max-width: 760px;
+      margin: 40px auto 60px;
+      padding: 0 24px;
+    }
+
+    .theme-box {
+      background: #fff8ef;
+      border-left: 5px solid #b07d3a;
+      border-radius: 0 10px 10px 0;
+      padding: 18px 22px;
+      margin-bottom: 28px;
+      font-size: 0.97em;
+      color: #4a3520;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    }
+
+    .theme-box .label {
+      font-size: 0.78em;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      color: #b07d3a;
+      margin-bottom: 6px;
+    }
+
+    .note-box {
+      background: #f0ebe0;
+      border: 1px solid #d4c4a8;
+      border-radius: 10px;
+      padding: 18px 22px;
+      margin-bottom: 36px;
+      font-size: 0.92em;
+      color: #4a4030;
+    }
+
+    .note-box .label {
+      font-size: 0.78em;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      color: #7a6040;
+      margin-bottom: 8px;
+    }
+
+    .note-box dl {
+      margin: 0;
+    }
+
+    .note-box dt {
+      font-weight: 700;
+      color: #5a4020;
+      margin-top: 10px;
+    }
+
+    .note-box dt:first-child {
+      margin-top: 0;
+    }
+
+    .note-box dd {
+      margin: 4px 0 0 0;
+      padding-left: 0;
+    }
+
+    .verse-section {
+      margin: 40px 0;
+      padding-top: 8px;
+      border-top: 1px solid #e0d4bc;
+    }
+
+    .verse-number {
+      font-size: 0.85em;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      color: #8a6030;
+      margin-bottom: 16px;
+    }
+
+    .verse-block {
+      background: #fffdf5;
+      border: 1px solid #ddd0b8;
+      border-radius: 12px;
+      padding: 28px 32px;
+      margin: 16px 0;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+      position: relative;
+    }
+
+    .verse-block::before {
+      content: "❝";
+      position: absolute;
+      top: -14px;
+      left: 22px;
+      font-size: 2.2em;
+      color: #b07d3a;
+      line-height: 1;
+    }
+
+    .verse-label {
+      font-size: 0.78em;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      color: #8a6030;
+      margin-bottom: 8px;
+    }
+
+    .verse-pali {
+      font-style: italic;
+      font-size: 0.95em;
+      color: #5a4020;
+      line-height: 2.0;
+      margin: 0 0 16px;
+    }
+
+    .verse-word {
+      font-size: 0.95em;
+      color: #4a3520;
+      line-height: 2.0;
+      margin: 0 0 16px;
+      padding-left: 12px;
+      border-left: 3px solid #d4c4a8;
+    }
+
+    .verse-text {
+      font-size: 1.05em;
+      line-height: 2.0;
+      color: #2e2010;
+      margin: 0;
+    }
+
+    .commentary {
+      background: #f7f2e8;
+      border-radius: 10px;
+      padding: 18px 22px;
+      margin-top: 16px;
+      font-size: 0.95em;
+      color: #3a3020;
+    }
+
+    .commentary .label {
+      font-size: 0.78em;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      color: #7a5520;
+      margin-bottom: 8px;
+    }
+
+    .commentary p {
+      margin: 0;
+      text-align: justify;
+      text-justify: inter-ideograph;
+    }
+
+    .divider {
+      text-align: center;
+      color: #b07d3a;
+      font-size: 1.2em;
+      margin: 32px 0;
+      letter-spacing: 0.3em;
+    }
+
+    footer {
+      background-color: #3a2a1c;
+      color: #a08060;
+      text-align: center;
+      padding: 20px;
+      font-size: 0.82em;
+      letter-spacing: 0.05em;
+    }
+
+    footer a {
+      color: #c8a87a;
+      text-decoration: none;
+    }
+
+    footer a:hover {
+      text-decoration: underline;
+    }
+
+    @media (max-width: 600px) {
+      .hero h1 {
+        font-size: 1.55em;
+      }
+
+      .verse-block {
+        padding: 20px 18px;
+      }
+
+      .container {
+        padding: 0 14px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="breadcrumb">
+    <a href="index.html">← ホーム</a>
+    ダンマパダ（ダンマのことば）／比丘品
+  </div>
+</header>
+
+<div class="hero">
+  <div class="chapter-number">第 25 章</div>
+  <h1>比丘品</h1>
+  <div class="subtitle">Bhikkhuvagga — Dhammapada</div>
+</div>
+
+<div class="container">
+
+  <div class="theme-box">
+    <div class="label">テーマ</div>
+    <p>
+      Bhikkhu（ビック・比丘）──「托鉢修行者」「托鉢で施しを受けながら、解脱するために修行する出家修行者」のことです。sīla（シーラ・戒め）とvinaya（ヴィナヤ・規律）を守り、自ら進んで清貧な禁欲生活をしています。
+    </p>
+    <p>
+      bhikkhu はもともと「物乞いをする者・乞食」という意味ですが、托鉢は物乞いではありません。彼らは黙ってドアの前に立って施しを受け、支援者から自発的に与えられるもので生活します。出家者は物やお金をもらっても、お礼の意味での頭は下げません。施した人が恩恵を受けられるようにするためです。
+    </p>
+  </div>
+
+  <div class="note-box">
+    <div class="label">※ 用語の解釈</div>
+    <p>このサイトでは、修行者、出家者、修行僧、僧侶といった表現が出てきますが、次のように解釈しています。</p>
+    <dl>
+      <dt>修行者</dt>
+      <dd>在家、出家に関わらず、ブッダの教えを実践するすべての人。</dd>
+      <dt>出家修行者</dt>
+      <dd>その中でも出家して、施しによって生活して修行する者（一時的な出家も含む）。ミャンマーやタイ、スリランカといった上座部仏教の国では、一生のうちに１度は（できれば2度）、出家することが推奨されています。数日間でも1年間でも出家です。10日間の瞑想合宿に参加することも出家です。出家期間が終われば家に戻って、通常の社会生活に復帰します。</dd>
+      <dt>修行僧</dt>
+      <dd>出家修行者のうち、生涯出家して、もう世俗に戻る意思がない者。日本人がイメージする出家のことです。</dd>
+      <dt>僧侶</dt>
+      <dd>修行僧が悟りのある段階に達し、他の修行者に教えてもいい立場になった者。もちろん在家はありえません。生涯が他者を幸せに導くための奉仕活動です。日本の僧侶のように、肉食妻帯者（しかも世襲制）は、ブッダの教えでは考えられないと思います。</dd>
+    </dl>
+  </div>
+
+  <!-- DhP 360 -->
+  <div class="verse-section" id="dhp360">
+    <div class="verse-number">偈 360（DhP360）</div>
+
+    <div class="verse-block">
+      <div class="verse-label">パーリ語</div>
+      <p class="verse-pali">
+        cakkhunā saṁvaro sādhu,<br>
+        sādhu sotena saṁvaro;<br>
+        ghāṇena saṁvaro sādhu,<br>
+        sādhu jivhāya saṁvaro.
+      </p>
+
+      <div class="verse-label">逐語訳</div>
+      <p class="verse-word">
+        眼において　自制は　よい<br>
+        よい　耳において　自制は<br>
+        鼻において　自制は　よい<br>
+        よい　舌において　自制は
+      </p>
+
+      <div class="verse-label">詩訳</div>
+      <p class="verse-text">
+        見えるものに振り回されないのは大切<br>
+        聞こえる音に振り回されないのは大切<br>
+        匂いにも振り回されないのは大切<br>
+        味わうことに振り回されないのは大切
+      </p>
+    </div>
+
+    <div class="commentary">
+      <div class="label">解説</div>
+      <p>
+        私たちには、眼耳鼻舌体心という6つの感覚器官があります。黙っていても情報が感覚器官に触れ、外からの刺激として認識します。もしこの刺激を受け止める感覚がなかったら、ただの物体です。感覚があるからこそ、生きていると言えるのです。つまり生命とは、物体に感覚があることです。
+      </p>
+      <p style="margin-top: 1em;">
+        人間も動物も昆虫もアメーバーも同じです。努力してもしなくても関係なく、自動的に刺激を認識して反応することで生命が続きます。反応が止まれば死です。
+      </p>
+    </div>
+  </div>
+
+  <!-- DhP 361 -->
+  <div class="verse-section" id="dhp361">
+    <div class="verse-number">偈 361（DhP361）</div>
+
+    <div class="verse-block">
+      <div class="verse-label">パーリ語</div>
+      <p class="verse-pali">
+        kāyena saṁvaro sādhu,<br>
+        sādhu vācāya saṁvaro;<br>
+        manasā saṁvaro sādhu,<br>
+        sādhu sabbattha saṁvaro;<br>
+        sabbattha saṁvuto bhikkhu,<br>
+        sabbadukkhā pamuccati.
+      </p>
+
+      <div class="verse-label">逐語訳</div>
+      <p class="verse-word">
+        身体において　自制は　よい<br>
+        よい　言葉において　自制は<br>
+        心において　自制は　よい<br>
+        よい　すべての処で　自制は<br>
+        すべての処で　自制は　比丘<br>
+        すべて・苦しみから　脱する
+      </p>
+
+      <div class="verse-label">詩訳</div>
+      <p class="verse-text">
+        行動を慎むことは大切<br>
+        言葉を慎むことも大切<br>
+        心を慎むことは大切<br>
+        あらゆる面で節度があることは大切<br>
+        あらゆる面で節度のある比丘は<br>
+        すべての苦しみから脱する
+      </p>
+    </div>
+
+    <div class="commentary">
+      <div class="label">解説</div>
+      <p>
+        すべての感覚＝六感（五感＋心）をコントロールすることは、有益な瞑想を行うための基本的な条件の1つです。この制御ができなければ、瞑想は進みません。なぜなら、まさにこの6つの感覚器官からの刺激の入力によって、瞑想から気が逸らされてしまうからです。比丘は日常生活の中でも集中力と気づきを鍛え、瞑想修行に応用しなければなりません。
+      </p>
+    </div>
+  </div>
+
+  <!-- DhP 362 -->
+  <div class="verse-section" id="dhp362">
+    <div class="verse-number">偈 362（DhP362）</div>
+
+    <div class="verse-block">
+      <div class="verse-label">パーリ語</div>
+      <p class="verse-pali">
+        hatthasaṁyato pādasaṁyato,<br>
+        vācāya saṁyato saṁyatuttamo;<br>
+        ajjhattarato samāhito,<br>
+        eko santusito tam āhu bhikkhuṁ.
+      </p>
+
+      <div class="verse-label">逐語訳</div>
+      <p class="verse-word">
+        手・自制は　足・自制は<br>
+        言葉　自制は　自制した・最高<br>
+        内面の・悦びは　定置<br>
+        独り　知足の　それを　呼ぶ　比丘と
+      </p>
+
+      <div class="verse-label">詩訳</div>
+      <p class="verse-text">
+        自分の手足や言葉をコントロールできる人<br>
+        完全に自分をコントロールする人は<br>
+        心が確立して内なる悦びを見出し<br>
+        孤独の中でも足るを知る人<br>
+        そんな人こそ比丘だといえる
+      </p>
+    </div>
+
+    <div class="commentary">
+      <div class="label">解説</div>
+      <p>
+        出家した比丘には、細かな規律（vinaya）が多数あります。その中には、走らない、歩く時に大きく手を振らない、木に登らないなど、手足に関する決まりもあります。
+      </p>
+      <p style="margin-top: 1em;">
+        人間は社会性のある生き物なので、群れることを好み、孤独を嫌いますが、出家修行者はむしろ孤独であることに満足します。外からの様々な刺激がなく、感情を煩わされなくて済むからです。
+      </p>
+      <p style="margin-top: 1em;">
+        人は自分の外側に興味を向けて、楽しみを見つけようとしますが、出家修行者は自分の心に徹底的に注意を向け、内なる悦びを楽しみます。外から得られる楽しみは有限ですが、内から得られる楽しみは無限なのです。
+      </p>
+    </div>
+  </div>
+
+  <!-- DhP 363 -->
+  <div class="verse-section" id="dhp363">
+    <div class="verse-number">偈 363（DhP363）</div>
+
+    <div class="verse-block">
+      <div class="verse-label">パーリ語</div>
+      <p class="verse-pali">
+        yo mukhasaṁyato bhikkhu,<br>
+        mantabhāṇī anuddhato;<br>
+        atthaṁ dhammañ ca dīpeti,<br>
+        madhuraṁ tassa bhāsitaṁ.
+      </p>
+
+      <div class="verse-label">逐語訳</div>
+      <p class="verse-word">
+        人は　口・自制　比丘<br>
+        考察する・話す　ない・高揚<br>
+        利を　ダンマを　と　明るくする<br>
+        蜜　それは　語られる
+      </p>
+
+      <div class="verse-label">詩訳</div>
+      <p class="verse-text">
+        比丘は言葉を選び冷静に有意義なことを語りなさい<br>
+        ダンマの道理を明快に語る言葉は甘美だ
+      </p>
+    </div>
+
+    <div class="commentary">
+      <div class="label">解説</div>
+      <p>
+        人間は言葉によってつながり、言葉によって支え合っています。言葉は自分が感じたことや思ったことを、音で表現する手段です。その人が発する音の行為によって、他者はその人を好ましく思ったり、不快に思ったりします。
+      </p>
+      <p style="margin-top: 1em;">
+        心に自我が多くあれば、自己中心的で一方的な話し方になり他者は面白くありません。自尊心があれば、横柄な話し方になり他者は不愉快になります。心に怒りがあれば、嫌味な話し方になり他者は反発します。
+      </p>
+      <p style="margin-top: 1em;">
+        勝手気ままにまくし立てるのではなく、口を制御（mukhasaṁyata）して、興奮しない（anuddhato）で、有意義なことを話す（mantabhāṇī）。言葉という音の行為によって、他者の役に立つことを話すのです。
+      </p>
+      <p style="margin-top: 1em;">
+        言葉は感情そのものです。伝えたい大切なことがあるわけではないのに、思いつくままに喋る行為は、ただ感情が溜まって発散したいだけです。自我・怒り・自尊心・無知に基づくネガティブな感情を外に放出したいのです。聞く方の心も染まるので、注意が必要です。
+      </p>
+    </div>
+  </div>
+
+  <div class="divider">— 了 —</div>
+
+</div>
+
+<footer>
+  <p>
+    ダンマパダ 第25章 比丘品（偈360–363）<br>
+    <a href="index.html">← ホームに戻る</a>
+  </p>
+</footer>
+
+</body>
+</html>
