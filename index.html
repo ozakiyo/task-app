@@ -1,888 +1,1026 @@
-<!--
-概要
-LocalStorageを活用したタスク管理アプリケーションを 開発してください。
-
-必須要件
-1. 基本機能
- タスクの追加、編集、削除
- タスクの完了/未完了の切り替え
- すべてのデータをLocalStorageに永続化
- OK
-
-2. 高度な機能
- 優先度設定（高・中・低）と色分け表示
- 期限設定と期限切れの視覚的な表示
- カテゴリ分け（仕事、プライベート、勉強など、自由に追加可能）
- 検索機能（タスク名での部分一致検索）
- フィルター機能
-完了/未完了での絞り込み
-優先度での絞り込み
-カテゴリでの絞り込み
- ソート機能
-作成日時順
-期限順
-優先度順
-3. データ構造
-各タスクは最低限以下の情報を持つこと：
-
-javascript
-
-{
-  id: number,           // 一意のID
-  title: string,        // タスク名
-  description: string,  // 詳細説明（任意）
-  priority: string,     // 'high' | 'medium' | 'low'
-  category: string,     // カテゴリ名
-  dueDate: string,      // 期限(日付)
-  completed: boolean,   // 完了状態
-  createdAt: string,    // 作成日時
-  updatedAt: string     // 更新日時
-}
-
-ヒント
-LocalStorageの基本操作
-javascript
-
-// 保存
-localStorage.setItem('key', JSON.stringify(data));
-
-// 読み込み
-const data = JSON.parse(localStorage.getItem('key'));
-
-// 削除
-localStorage.removeItem('key');
-
-// すべて削除
-localStorage.clear();
-データ構造の設計例
-javascript
-
-// 全体のデータ構造
-{
-  tasks: [...],           // タスクの配列
-  categories: [...],      // カテゴリの配列
-  settings: {...}         // 設定情報
-}
-期限切れの判定
-javascript
-
-const isOverdue = new Date(task.dueDate) < new Date();
-フィルタリングの実装例
-javascript
-
-const filtered = tasks.filter(task => {
-  // 複数条件での絞り込み
-  return (
-    task.completed === filterCompleted &&
-    task.priority === filterPriority &&
-    task.category === filterCategory
-  );
-});
-
-デザインが整わない。コードの全て見直しから
-
-
--->
 <!DOCTYPE html>
 <html lang="ja">
-  <head>
-    <meta charset="UTF-8">
-<title>LocalStorageを活用したタスク管理アプリケーション</title>
-<style>
-  body{
-    background-color: #f5f6fa;
-    padding:0;
-    margin:0;
-  }
-  header{
-    background-color: #007bff;
-    color:white;
-    padding:20px 0;
-    text-align:center;
-    font-size:1.6em;
-    box-shadow:0 3px 8px rgba(0,0,0,0.15);
-    font-weight:600;
-    letter-spacing:1px;
-  }
-  nav{
-    background-color:#FFF;
-    display:flex;
-    justify-content: center;
-    gap:10px;
-    padding:10px 0;
-    box-shadow:0 2px 6px rgba(0,0,0,0.08);
-    position: sticky;
-    top:0;
-    z-index:100;
-  }
-  nav button{
-    background-color:transparent;
-    border:none;
-    color:#333;
-    padding:8px 18px;
-    font-size:15px;
-    cursor:pointer;
-    border-radius:25px;
-    transition:all 0.2s ease;
-  }
-  nav button.active, nav button:hover{
-    background-color: #007bff;
-    color:#FFF;
-    box-shadow:0 2px 6px rgba(0,123,255,0.3);
-  }
-
-  .container{
-    max-width:700px;
-    background:#FFF;
-    padding:25px 30px;
-    border-radius:15px;
-    margin:30px auto;
-    box-shadow:0 5px 15px rgba(0,0,0,0.1);
-  }
-  h1{
-    text-align:center;
-    color:#333;
-    margin-bottom:20px;
-  }
-
-  .input-area,
-  .search-area,
-  .filter-area,
-  .sort-area,
-  .category-area,
-  .category-delete-area{
-    display:flex;
-    flex-wrap:wrap;
-    align-items:center;
-    gap:10px;
-    margin-bottom:25px;
-    margin-top:5px;
-  }
-  input[type="text"],
-  input[type="date"],
-  select{
-    flex:1;
-    padding:8px 10px;
-    border:1px solid #CCC;
-    border-radius:8px;
-    font-size:14px;
-    transition:border-color 0.2s;
-  }
-  input:focus,
-  select:focus{
-    outline:none;
-    border-color:#007bff;
-    box-shadow:0 0 4px rgba(0,123,255,0.3);
-  }
-
-  button{
-    padding:8px 14px;
-    border:none;
-    border-radius:6px;
-    cursor:pointer;
-    background-color: #007bff;
-    color:white;
-    font-size:14px;
-    transition:background 0.2s,transform 0.1s;
-  }
-  button:hover{
-    background-color:#0056b3;
-    transform:translateY(-1px);
-  }
-  ul{
-    list-style:none;
-    padding:0;
-    margin:0;
-  }
-  li{
-    background:white;
-    margin-bottom:12px;
-    padding:14px 16px;
-    border-radius:10px;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
-    display:flex;
-    flex-direction: column;
-    gap:5px;
-    transition:transform 0.2s,box-shadow 0.2s;
-  }
-  li:hover{
-    transform:translateY(-3px);
-    box-shadow:0 3px 8px rgba(0,0,0,0.12);
-  }
-  .task-main-row{
-    display:flex;
-    align-items:center;
-    gap:6px;
-    justify-content: space-between;
-    flex-wrap:wrap;
-    gap:6px;
-  }
-  .task-buttons button{
-    padding:5px 8px;
-    font-size:12px;
-    border-radius:4px;
-    background-color: #6c757d;
-  }
-  .task-buttons button:hover{
-    background-color: #495057;;
-  }
-
-  li.completed span{
-    text-decoration:line-through;
-    color:#aaa;
-  }
-  /*期限関連のスタイル*/
-  .due-date{
-    font-size:12px;
-    color:#555;
-  }
-  /*優先度色分け表示*/
-  .high{
-    border-left:8px solid #e74c3c;
-  }
-  .medium{
-    border-left:8px solid #f39c12;
-  }
-  .low{
-    border-left:8px solid #27ae60;
-  }
-
-/* ===============================
-   期限状態
-=============================== */
-  .overdue{
-    background-color:#fff0f0;
-  }
-  .due-today{
-    background-color:#fffbe6;
-  }
-
-/* ===============================
-   カテゴリバッジ
-=============================== */
-.category-badge{
-  background-color: #eef1f5;
-  border-radius:12px;
-  padding:3px 8px;
-  font-size:12px;
-  color:#333;
-  font-weight:500;
-}
-
-/* ===============================
-   編集モード
-=============================== */
-  .task-buttons button{
-    margin-left:5px;
-    font-size:12px;
-    padding:5px 10px;
-  }
-  .edit-input{
-    flex:1;
-    margin-right:10px;
-    padding:8px;
-    border:1px solid #ccc;
-    border-radious:5px;
-  }
-/* ===============================
-   セクション見出しデザイン
-=============================== */
-.section-title{
-  font-size:1.1em;
-  font-weight:600;
-  color:#007bff;
-  margin:25px 0 10px;
-  padding-left:10px;
-  border-left:4px solid #007bff;
-  background-color: #f0f8ff;
-  border-radius:6px;
-  padding:6px 10px;
-  letter-spacing:0.5px;
-}
-  
-/* ===============================
-   レスポンシブ対応
-=============================== */
-  @media(max-width:600px){
-    nav{
-      flex-wrap:wrap;
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ダンマの一日 — ダンマパダとスッタニパータ</title>
+  <style>
+    :root {
+      --bg: #f7f3ed;
+      --surface: #fffcf7;
+      --primary: #8b6914;
+      --primary-light: #c4a035;
+      --accent: #5c4a32;
+      --text: #2c2416;
+      --text-muted: #6b5d4a;
+      --border: #e8dfd0;
+      --success: #4a7c59;
+      --shadow: 0 4px 20px rgba(92, 74, 50, 0.08);
     }
-    .input-area,
-    .filter-area,
-    .sort-area,
-    .category-area,
-    .category-delete-area{
-      flex-direction:column;
-      align-items:stretch;
-    }
-    button{
-      width:100%;
-    }
-  }
 
-</style>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Noto Sans JP", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.7;
+      min-height: 100vh;
+    }
+
+    header {
+      background: linear-gradient(135deg, #6b4f1d 0%, #8b6914 50%, #a07d2a 100%);
+      color: #fff;
+      padding: 28px 20px 24px;
+      text-align: center;
+      box-shadow: 0 4px 16px rgba(92, 74, 50, 0.2);
+    }
+
+    header h1 {
+      margin: 0 0 6px;
+      font-size: 1.5rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+    }
+
+    header p {
+      margin: 0;
+      font-size: 0.9rem;
+      opacity: 0.92;
+    }
+
+    nav {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      padding: 12px 16px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      flex-wrap: wrap;
+    }
+
+    nav button {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--accent);
+      padding: 8px 18px;
+      border-radius: 24px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      transition: all 0.2s;
+    }
+
+    nav button.active,
+    nav button:hover {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: #fff;
+    }
+
+    main {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 24px 16px 48px;
+    }
+
+    .panel { display: none; }
+    .panel.active { display: block; }
+
+    .card {
+      background: var(--surface);
+      border-radius: 16px;
+      padding: 24px;
+      margin-bottom: 20px;
+      box-shadow: var(--shadow);
+      border: 1px solid var(--border);
+    }
+
+    .card-title {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--primary);
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      margin: 0 0 12px;
+    }
+
+    .date-badge {
+      display: inline-block;
+      background: #f0e8d8;
+      color: var(--accent);
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 0.82rem;
+      margin-bottom: 16px;
+    }
+
+    .verse-block {
+      border-left: 4px solid var(--primary-light);
+      padding: 16px 20px;
+      margin: 16px 0;
+      background: #faf6ef;
+      border-radius: 0 12px 12px 0;
+    }
+
+    .verse-pali {
+      font-style: italic;
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      margin-bottom: 10px;
+    }
+
+    .verse-ja {
+      font-size: 1.15rem;
+      font-weight: 500;
+      line-height: 1.8;
+    }
+
+    .source-tag {
+      display: inline-block;
+      font-size: 0.8rem;
+      color: var(--primary);
+      background: #f5edd8;
+      padding: 3px 10px;
+      border-radius: 12px;
+      margin-top: 12px;
+    }
+
+    .theme-badge {
+      display: inline-block;
+      font-size: 0.82rem;
+      color: var(--success);
+      border: 1px solid var(--success);
+      padding: 2px 10px;
+      border-radius: 12px;
+      margin-left: 8px;
+    }
+
+    .action-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .action-list li {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .action-list li:last-child { border-bottom: none; }
+
+    .action-list input[type="checkbox"] {
+      width: 20px;
+      height: 20px;
+      margin-top: 3px;
+      accent-color: var(--primary);
+      flex-shrink: 0;
+    }
+
+    .action-list label {
+      cursor: pointer;
+      flex: 1;
+    }
+
+    .action-list input:checked + label {
+      color: var(--text-muted);
+      text-decoration: line-through;
+    }
+
+    .practice-grid {
+      display: grid;
+      gap: 10px;
+    }
+
+    .practice-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 16px;
+      background: #faf6ef;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      transition: background 0.2s;
+    }
+
+    .practice-item.done {
+      background: #eef5ef;
+      border-color: #c5dcc9;
+    }
+
+    .practice-item input {
+      width: 20px;
+      height: 20px;
+      accent-color: var(--success);
+    }
+
+    .practice-item label {
+      cursor: pointer;
+      flex: 1;
+      font-size: 0.95rem;
+    }
+
+    .practice-item .hint {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      display: block;
+      margin-top: 2px;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 120px;
+      padding: 14px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      font-family: inherit;
+      font-size: 0.95rem;
+      resize: vertical;
+      background: #faf6ef;
+    }
+
+    textarea:focus {
+      outline: none;
+      border-color: var(--primary-light);
+      box-shadow: 0 0 0 3px rgba(196, 160, 53, 0.2);
+    }
+
+    .progress-bar {
+      height: 8px;
+      background: var(--border);
+      border-radius: 4px;
+      overflow: hidden;
+      margin: 12px 0 4px;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--primary), var(--success));
+      border-radius: 4px;
+      transition: width 0.4s ease;
+    }
+
+    .progress-text {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      text-align: right;
+    }
+
+    .teaching-list-item {
+      padding: 16px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      margin-bottom: 10px;
+      cursor: pointer;
+      transition: all 0.2s;
+      background: var(--surface);
+    }
+
+    .teaching-list-item:hover {
+      border-color: var(--primary-light);
+      box-shadow: var(--shadow);
+    }
+
+    .teaching-list-item.today {
+      border-color: var(--primary);
+      background: #faf6ef;
+    }
+
+    .teaching-list-item .title {
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .teaching-list-item .preview {
+      font-size: 0.88rem;
+      color: var(--text-muted);
+    }
+
+    .history-item {
+      padding: 14px 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .history-item:last-child { border-bottom: none; }
+
+    .history-date {
+      font-size: 0.82rem;
+      color: var(--primary);
+      font-weight: 600;
+    }
+
+    .history-summary {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    .btn-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 12px;
+    }
+
+    button.primary-btn {
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      transition: background 0.2s;
+    }
+
+    button.primary-btn:hover { background: #6b4f1d; }
+
+    button.secondary-btn {
+      background: transparent;
+      color: var(--accent);
+      border: 1px solid var(--border);
+      padding: 10px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.9rem;
+    }
+
+    .intro-text {
+      font-size: 0.92rem;
+      color: var(--text-muted);
+      margin-bottom: 16px;
+    }
+
+    .empty-state {
+      text-align: center;
+      color: var(--text-muted);
+      padding: 32px;
+    }
+
+    @media (max-width: 600px) {
+      header h1 { font-size: 1.25rem; }
+      .card { padding: 18px; }
+      .verse-ja { font-size: 1.05rem; }
+    }
+  </style>
 </head>
 <body>
-  <header>タスク管理アプリ</header>
-  <div class="container">
-    <h2 class="section-title">タスク追加</h2>
-    <div class="input-area">
-      <input type="text" id="taskInput" placeholder="タスクを入力">
+  <header>
+    <h1>ダンマの一日</h1>
+    <p>ダンマパダとスッタニパータ — 毎日の行動の指針</p>
+  </header>
 
-      <!--詳細説明-->
-      <input type="text" id="descInput" placeholder="詳細説明(任意)">
-      <input type="date" id="dueDateInput">
+  <nav>
+    <button class="active" data-panel="today">今日</button>
+    <button data-panel="teachings">教え一覧</button>
+    <button data-panel="history">記録</button>
+  </nav>
 
-      <!--優先度色分け表示-->
-      <select id="prioritySelector">
-        <option value="high">高</option>
-        <option value="medium" selected>中</option>
-        <option value="low">低</option>
-      </select>
+  <main>
+    <section id="panel-today" class="panel active">
+      <div class="card">
+        <p class="card-title">今日の教え</p>
+        <div class="date-badge" id="todayDate"></div>
+        <div id="todayTeaching"></div>
+      </div>
 
-      <!--カテゴリ追加欄-->
-      <select id="categorySelector"></select>
-      <button id="addBtn">追加</button>
-    </div>
+      <div class="card">
+        <p class="card-title">今日の行動指針</p>
+        <p class="intro-text">教えに基づき、今日意識してみる具体的な行動です。できたものにチェックを入れましょう。</p>
+        <div class="progress-bar"><div class="progress-fill" id="actionProgress"></div></div>
+        <p class="progress-text" id="actionProgressText"></p>
+        <ul class="action-list" id="actionList"></ul>
+      </div>
 
-    <!--カテゴリ追加欄-->
-    <h2 class="section-title">カテゴリ管理</h2>
-    <div class="category-area">
-      <input type="text" id="newCategoryInput" placeholder="新しいカテゴリを入力">
-      <button id="addCategoryBtn">カテゴリ追加</button>
-    </div>
+      <div class="card">
+        <p class="card-title">日々の実践</p>
+        <p class="intro-text">スッタニパータ「吉祥経」などに示される、毎日の土台となる七つの実践です。</p>
+        <div class="progress-bar"><div class="progress-fill" id="practiceProgress"></div></div>
+        <p class="progress-text" id="practiceProgressText"></p>
+        <div class="practice-grid" id="practiceList"></div>
+      </div>
 
-    <!---カテゴリ削除--->
-    <div class="category-delete-area">
-      <select id="deleteCategorySelector"></select>
-      <button id="deleteCategoryBtn">カテゴリ削除</button>
-    </div>
+      <div class="card">
+        <p class="card-title">夜の振り返り</p>
+        <p class="intro-text">今日、教えをどう生きたか。怒りや感謝、気づきを自由に書き留めてください。</p>
+        <textarea id="reflectionInput" placeholder="例：午後、同僚の言葉に怒りそうになったが、一呼吸置いて穏やかに返せた。明日は朝の挨拶を大切にしたい。"></textarea>
+        <div class="btn-row">
+          <button class="primary-btn" id="saveReflection">振り返りを保存</button>
+        </div>
+      </div>
+    </section>
 
-    <!--検索機能-->
-    <h2 class="section-title">タスク検索</h2>
-    <div class="search-area">
-      <input type="text" id="searchInput" placeholder="タスクを検索">
-      <button id="searchClearBtn">クリア</button>
-    </div>
+    <section id="panel-teachings" class="panel">
+      <div class="card">
+        <p class="card-title">教えの一覧</p>
+        <p class="intro-text">31の教えが日替わりで巡ります。タップすると詳細を表示します。</p>
+        <div id="teachingCatalog"></div>
+      </div>
+    </section>
 
-    <!--フィルタ機能-->
-    <h2 class="section-title">タスクフィルタ</h2>
-    <div class="filter-area">
-      <select id="filterStatus">
-        <option value="all">すべて</option>
-        <option value="completed">完了のみ</option>
-        <option value="incomplete">未完了のみ</option>
-      </select>
-      <select id="filterPriority">
-        <option value="all">全優先度</option>
-        <option value="high">高</option>
-        <option value="medium">中</option>
-        <option value="low">低</option>
-      </select>
-      <select id="filterCategory">
-        <option value="all">全カテゴリ</option>
-      </select>
-    </div>
+    <section id="panel-history" class="panel">
+      <div class="card">
+        <p class="card-title">実践の記録</p>
+        <p class="intro-text">過去の振り返りと、その日の達成率です。</p>
+        <div id="historyList"></div>
+      </div>
+    </section>
+  </main>
 
-    <!--ソート機能-->
-    <h2 class="section-title">タスク並び替え</h2>
-    <div class="sort-area">
-      <select id="sortSelector">
-        <option value="created">作成日時順</option>
-        <option value="dueDate">期限順</option>
-        <option value="priority">優先度順</option>
-      </select>
-    </div>
-
-    <ul id="taskList"></ul>
-  </div>
-
-    <script>
-      const taskInput = document.getElementById("taskInput");
-       /*詳細説明*/
-      const descInput = document.getElementById("descInput");
-      const addBtn = document.getElementById("addBtn");
-      const taskList = document.getElementById("taskList");
-      /*優先度色分け表示*/
-      const prioritySelector = document.getElementById("prioritySelector");
-      /*期限表示*/
-      const dueDateInput = document.getElementById("dueDateInput");
-      /*カテゴリ追加*/
-      const categorySelector = document.getElementById("categorySelector");
-      const newCategoryInput = document.getElementById("newCategoryInput");
-      const addCategoryBtn = document.getElementById("addCategoryBtn");
-      /*カテゴリ削除*/
-      const deleteCategorySelector = document.getElementById("deleteCategorySelector");
-      const deleteCategoryBtn = document.getElementById("deleteCategoryBtn");
-      /*検索機能*/
-      const searchInput = document.getElementById("searchInput");
-      const searchClearBtn = document.getElementById("searchClearBtn");
-      /*フィルター*/
-      const filterStatus = document.getElementById("filterStatus");
-      const filterPriority = document.getElementById("filterPriority");
-      const filterCategory = document.getElementById("filterCategory");
-      /*ソート機能*/
-      const sortSelector = document.getElementById("sortSelector");
-     
-      //---LocalStrageからデータ読み込み---
-      let data = JSON.parse(localStorage.getItem("key")) || [];
-      let categories = JSON.parse(localStorage.getItem("categories")) || ["仕事","プライベート","その他"];
-      let editIndex = null; //編集中のインデックスを保持
-      let currentView = "all";
-
-      //---カテゴリ表示更新---
-      function renderCategories(){
-        categorySelector.innerHTML = "";
-        filterCategory.innerHTML = '<option value="all">全カテゴリ</option>';
-        deleteCategorySelector.innerHTML = "";
-        for(let i=0;i<categories.length;i++){
-          const category = categories[i];
-
-          //タスク追加用カテゴリ選択欄
-          const opt1 = document.createElement("option");
-          opt1.value = category;
-          opt1.textContent = category;
-          categorySelector.appendChild(opt1);
-
-          //フィルタ選択用カテゴリ選択欄
-          const opt2 = document.createElement("option");
-          opt2.value = category;
-          opt2.textContent = category;
-          filterCategory.appendChild(opt2);
-
-          //カテゴリ削除
-          const opt3 = document.createElement("option");
-          opt3.value = category;
-          opt3.textContent = category;
-          deleteCategorySelector.appendChild(opt3);
-        }
-        if(categories.length>0){
-          categorySelector.value = categories[0];
-        }
+  <script>
+    const TEACHINGS = [
+      {
+        source: "ダンマパダ",
+        ref: "第一品 双品 第1偈",
+        theme: "心の先導",
+        verseJa: "心はすべての法の先導となる。心が主であり、心が造る。口と身の行いは、清らかな心から生まれる。",
+        actions: [
+          "朝、心の状態を静かに確かめる（三呼吸）",
+          "今日最初に口にする言葉を、慈しみの言葉に選ぶ",
+          "怒りや不安が浮かんだら「今、心が動いている」と気づく",
+          "一日の終わりに、心がどう変化したか振り返る"
+        ]
+      },
+      {
+        source: "ダンマパダ",
+        ref: "第一品 双品 第2偈",
+        theme: "心の先導",
+        verseJa: "心はすべての法の先導となる。心が主であり、心が造る。口と身の行いは、汚れた心から生まれる。",
+        actions: [
+          "悪意や批判の思考に気づいたら、一度止まる",
+          "人を評価する前に、自分の心の状態を確かめる",
+          "今日は誰か一人の良い面を意識的に見つける",
+          "ネガティブな発言の前に一呼吸置く"
+        ]
+      },
+      {
+        source: "ダンマパダ",
+        ref: "第三品 心品 第33偈",
+        theme: "心の守り",
+        verseJa: "揺るがない心は、守るべき城塞である。心を守らない者は、後の世においても苦しむ。",
+        actions: [
+          "誘惑や衝動に従う前に、十秒待つ習慣をつける",
+          "SNSや怒りを煽る情報から意図的に距離を置く",
+          "今日一つ、自制できた場面を記録する",
+          "就寝前にスマホを手放し、心を静める時間を作る"
+        ]
+      },
+      {
+        source: "ダンマパダ",
+        ref: "第五品 愚者品 第61偈",
+        theme: "学び",
+        verseJa: "愚者は隣人の過ちを見るが、自分の過ちは隠す。賢者は自分の過ちを見出し、隣人の過ちのように隠す。",
+        actions: [
+          "今日の自分の過ちを一つ、正直に認める",
+          "他人の失敗を指摘する代わりに、自分に当てはめて考える",
+          "謝れる場面では、素直に謝る",
+          "批判の前に「自分ならどうだったか」を問う"
+        ]
+      },
+      {
+        source: "ダンマパダ",
+        ref: "第十七品 怒り品 第3偈",
+        theme: "怒りを超える",
+        verseJa: "怒りを怒りで返さず、勝利を得る者は勝者である。怒りを怒りで返す者は、双方とも敗者である。",
+        actions: [
+          "怒りを感じたら、身体の緊張を意識して肩を下げる",
+          "反論したい衝動を感じたら、まず相手の話を最後まで聴く",
+          "今日は意図的に「わかりました」と穏やかに返す場面を一つ作る",
+          "怒りの原因が自分の期待だったと気づく"
+        ]
+      },
+      {
+        source: "ダンマパダ",
+        ref: "第十七品 怒り品 第5偈",
+        theme: "怒りを超える",
+        verseJa: "怒りを抑え、怒りを捨てる者は、双方のために善い。自分と他者の双方の安楽を知る者である。",
+        actions: [
+          "怒りを感じた相手に、内心で「安楽でありますように」と願う",
+          "怒りの感情を否定せず、ただ観察する",
+          "今日、怒りを持ち越さずにその場で手放せた場面を探す",
+          "就寝前に、今日の怒りを書き出して手放す"
+        ]
+      },
+      {
+        source: "ダンマパダ",
+        ref: "第一品 双品 第5偈",
+        theme: "恨み",
+        verseJa: "恨みを抱く者は、恨みを抱かれる。恨みを捨てた者は安楽である。恨みを捨てることについて、私はこのように語る。",
+        actions: [
+          "古い恨みを一つ思い出し、手放す意思を確認する",
+          "今日、許せないと感じる人の苦しみを想像してみる",
+          "自分が恨みを抱えていることに、正直に気づく",
+          "許しは相手のためではなく、自分の心の自由のために行う"
+        ]
+      },
+      {
+        source: "ダンマパダ",
+        ref: "第二品 注意品 第21偈",
+        theme: "注意",
+        verseJa: "注意は死の道を超える。不注意は死の道である。注意ある者は死なない。不注意な者は、すでに死んだも同然である。",
+        actions: [
+          "一つの作業を、途中で散漫にせず最後まで集中する",
+          "食事の一口一口を味わい、注意深く食べる",
+          "歩くとき、足の感覚に意識を向ける",
+          "今日「気づいていなかった」瞬間を一つ、振り返る"
+        ]
+      },
+      {
+        source: "ダンマパダ",
+        ref: "第二品 注意品 第23偈",
+        theme: "注意",
+        verseJa: "注意ある比丘は、天界への道を歩む。注意ある者は、安楽に到達する。",
+        actions: [
+          "朝の五分間、呼吸に意識を向ける",
+          "仕事の合間に、三呼吸で心を整える",
+          "自動操縦モードで過ごしていた時間を減らす",
+          "今日最も注意深く過ごせた瞬間を記録する"
+        ]
+      },
+      {
+        source: "ダンマパダ",
+        ref: "第四品 花品 第44偈",
+        theme: "善行",
+        verseJa: "この世を歩きながら、誰も花のような者を見ない。死の軍勢に捕らわれた者たちの中で、清らかな者は稀有である。",
+        actions: [
+          "今日、誰かに小さな親切を一つ行う",
+          "批判ではなく、感謝の言葉を一つ伝える",
+          "困っている人がいれば、目を合わせて声をかける",
+          "自分の善行を誇らず、静かに行う"
+        ]
+      },
+      {
+        source: "ダンマパダ",
+        ref: "第四品 花品 第45偈",
+        theme: "善行",
+        verseJa: "死の軍勢に捕らわれた者たちの中で、清らかな者は稀有である。全世界を超えて、清らかな者は天界に到達する。",
+        actions: [
+          "今日、誘惑に負けず善い選択を一つする",
+          "不正や妥協をせず、誠実に行動する",
+          "自分の利益より、他者の安楽を優先する場面を探す",
+          "清らかな心で過ごした時間を振り返る"
+        ]
+      },
+      {
+        source: "ダンマパダ",
+        ref: "第九品 悪品 第116偈",
+        theme: "悪を避ける",
+        verseJa: "速やかに善いことをせよ。悪を後回しにせよ。悪を後回しにする者は、喜びを見出す。",
+        actions: [
+          "先延ばしにしていた善いことを、今日一つ実行する",
+          "害を与える行いを、今日は意図的に避ける",
+          "約束を守り、信頼を積み重ねる",
+          "善い習慣を一つ、今日から始める"
+        ]
+      },
+      {
+        source: "ダンマパダ",
+        ref: "第九品 悪品 第117偈",
+        theme: "悪を避ける",
+        verseJa: "悪を後回しにする者は、喜びを見出す。しかし悪を行う者は、喜びを見出すことができない。",
+        actions: [
+          "小さな嘘やごまかしを今日は一つもしない",
+          "自分に都合の悪い真実から目を背けない",
+          "他人の評価を下げる言動を控える",
+          "善い行いの後に感じる静かな喜びに気づく"
+        ]
+      },
+      {
+        source: "ダンマパダ",
+        ref: "第十品 打撲品 第129偈",
+        theme: "自己責任",
+        verseJa: "すべての存在は、自分の業の結果である。業の結果は、自分自身が受ける。善い業も悪い業も、自分が造り、自分が受ける。",
+        actions: [
+          "今日起きた出来事を、他人のせいにせず自分の関与を考える",
+          "言葉と行動の結果を、意識して選ぶ",
+          "善い種を今日一つまく（親切、誠実、忍耐）",
+          "「なぜこうなったか」を自分の選択から振り返る"
+        ]
+      },
+      {
+        source: "ダンマパダ",
+        ref: "第十品 打撲品 第131偈",
+        theme: "自己責任",
+        verseJa: "自分を打ち、自分を制御せよ。マラ（誘惑）の軍勢に打ち負けないように、自分自身を良い従者のように訓練せよ。",
+        actions: [
+          "怠惰や誘惑に負けそうなとき、自分に優しくも厳しく声をかける",
+          "今日一つ、自制の成功体験を積む",
+          "悪習慣のトリガーを特定し、回避策を試す",
+          "就寝時間を守り、身体を大切にする"
+        ]
+      },
+      {
+        source: "ダンマパダ",
+        ref: "第十二品 自己品 第157偈",
+        theme: "自己を超える",
+        verseJa: "自分自身を、まず自分自身の島として築け。精進して自分自身を訓練せよ。",
+        actions: [
+          "他人の評価に依存せず、自分の軸で一日を過ごす",
+          "自分を責めるのではなく、自分を訓練する姿勢を持つ",
+          "今日、自分の内面を整える時間を十分に取る",
+          "自分自身を最も大切な友人のように扱う"
+        ]
+      },
+      {
+        source: "ダンマパダ",
+        ref: "第十二品 自己品 第158偈",
+        theme: "自己を超える",
+        verseJa: "自分自身を、まず自分自身の島として築け。精進して自分自身を訓練せよ。",
+        actions: [
+          "外の混乱の中でも、内なる平静を保つ練習をする",
+          "今日、自分の判断で善い決断を一つ下す",
+          "他人の意見を聴きつつ、最終的には自分で考える",
+          "自分の心の島を、一つの善い習慣で強化する"
+        ]
+      },
+      {
+        source: "ダンマパダ",
+        ref: "第十五品 幸福品 第197偈",
+        theme: "幸福",
+        verseJa: "悲しみをもたらす道を歩む者は、悲しみに苦しむ。幸福をもたらす道を歩む者は、幸福を見出す。",
+        actions: [
+          "今日の選択が、未来の自分に幸福をもたらすか問う",
+          "悲しみを増やす習慣（愚痴、比較、過度な欲望）を一つ減らす",
+          "幸福をもたらす行い（感謝、与える、学ぶ）を一つ増やす",
+          "今この瞬間に、すでにある幸福に気づく"
+        ]
+      },
+      {
+        source: "ダンマパダ",
+        ref: "第十五品 幸福品 第204偈",
+        theme: "幸福",
+        verseJa: "健康こそ最大の利得である。知足こそ最大の富である。信頼こそ最大の親族である。涅槃こそ最高の幸福である。",
+        actions: [
+          "足るを知る：今日、足りているものを三つ書き出す",
+          "身体の健康のために、一つ良いことをする",
+          "信頼関係を大切にする行動を一つ取る",
+          "過度な欲望を手放し、今を満たす"
+        ]
+      },
+      {
+        source: "ダンマパダ",
+        ref: "第二十四品 愛欲品 第349偈",
+        theme: "執着",
+        verseJa: "愛欲の束縛から解き放たれた者は、苦しみから解き放たれる。愛欲を捨てた者は、すべての苦しみを捨てる。",
+        actions: [
+          "執着しているもの（物、意見、関係）を一つ特定する",
+          "「手放しても大丈夫」と自分に許可を与える",
+          "変化を恐れず、流れに身を任せる場面を一つ作る",
+          "執着が苦しみを生むと気づく"
+        ]
+      },
+      {
+        source: "ダンマパダ",
+        ref: "第二十六品 聖者品 第383偈",
+        theme: "聖なる生",
+        verseJa: "苦の終わりを見た者は、迷いの林を超えた。すべての束縛を断ち切り、苦しみを超えた。",
+        actions: [
+          "今日の苦しみの根源を一つ、静かに観察する",
+          "執着を手放す小さな練習を一つ行う",
+          "「これも変わる」と、困難な状況に対して思う",
+          "自由な心で過ごせた瞬間を記録する"
+        ]
+      },
+      {
+        source: "スッタニパータ",
+        ref: "慈経（メッター・スッター）",
+        theme: "慈しみ",
+        verseJa: "自分自身の安楽を願うように、すべての存在に慈しみを向けよ。上も下も横も、障害なく、敵意なく、危害なく。",
+        actions: [
+          "朝、自分と大切な人、中立の人、困難な人に慈しみを送る",
+          "今日出会うすべての人に、内心で「安楽でありますように」と願う",
+          "批判の前に、相手の幸福を願う",
+          "自分自身にも、厳しさではなく慈しみを向ける"
+        ]
+      },
+      {
+        source: "スッタニパータ",
+        ref: "慈経",
+        theme: "慈しみ",
+        verseJa: "立っていようと、歩いていようと、坐っていようと、横たわっていようと、眠らない間は、慈しみの心を保て。",
+        actions: [
+          "移動中（通勤・買い物）にも慈しみの心を保つ",
+          "待ち時間を、慈しみの瞑想の機会にする",
+          "イライラしたとき、慈しみの言葉を心の中で唱える",
+          "就寝前に、今日出会った人々への慈しみを振り返る"
+        ]
+      },
+      {
+        source: "スッタニパータ",
+        ref: "吉祥経（マンガラ・スッター）",
+        theme: "吉祥",
+        verseJa: "父母を敬い、家族を大切にし、穏やかな生業を持ち、正しい行いをせよ。これが最大の吉祥である。",
+        actions: [
+          "父母や育ててくれた人への感謝を伝える（心の中でも可）",
+          "家族や身近な人に、今日一つ具体的な親切をする",
+          "仕事や学びを、誠実かつ穏やかに行う",
+          "不正な手段を使わず、正しい道を選ぶ"
+        ]
+      },
+      {
+        source: "スッタニパータ",
+        ref: "吉祥経",
+        theme: "吉祥",
+        verseJa: "布施と法を尊重し、長老を敬い、謙虚で誠実な者に接せよ。これが最大の吉祥である。",
+        actions: [
+          "今日、与えることを一つ行う（時間、知識、物）",
+          "年長者や経験者の話を、敬意をもって聴く",
+          "自分の知識を誇らず、謙虚に学ぶ姿勢を持つ",
+          "法（真理・教え）を大切にする時間を取る"
+        ]
+      },
+      {
+        source: "スッタニパータ",
+        ref: "吉祥経",
+        theme: "吉祥",
+        verseJa: "怒りと慢心を捨て、謙虚で従順な者と交わり、困ったとき助けを求め、感謝を忘れない。これが最大の吉祥である。",
+        actions: [
+          "今日、慢心（自分を高める心）に気づいたら手放す",
+          "謙虚な人との会話を大切にする",
+          "困ったとき、助けを求める勇気を持つ",
+          "受け取った恩恵に、感謝を述べる"
+        ]
+      },
+      {
+        source: "スッタニパータ",
+        ref: "経集 第三 大章",
+        theme: "正しい生",
+        verseJa: "怒りを捨て、慢心を捨て、すべての束縛を超えよ。苦しみに打ち勝ち、執着のない者は、真の幸福を知る。",
+        actions: [
+          "慢心を刺激する状況（SNS、競争）から距離を置く",
+          "今日、執着を手放せた場面を一つ探す",
+          "苦しみを増やす比較をやめる",
+          "シンプルな生活の中に幸福を見出す"
+        ]
+      },
+      {
+        source: "スッタニパータ",
+        ref: "経集 第四 八品 第15経",
+        theme: "正しい言葉",
+        verseJa: "真実を語り、優しく語り、有益なことを語れ。法に沿った言葉を語る者は、後悔しない。",
+        actions: [
+          "今日、真実から外れた言葉を一つも口にしない",
+          "厳しい言葉を、優しい表現に変えて伝える",
+          "相手のためになる言葉だけを選ぶ",
+          "言った後に後悔する発言を避ける"
+        ]
+      },
+      {
+        source: "スッタニパータ",
+        ref: "経集 第一 有学品",
+        theme: "学び",
+        verseJa: "善き友を得よ。謙虚で、学ぶ意欲のある者と交われ。そうすれば、苦しみの終わりに近づく。",
+        actions: [
+          "今日、善き友（自分を良い方向に導く人）に連絡する",
+          "学びの時間を意図的に確保する",
+          "自分より知識や経験のある人から学ぶ",
+          "悪い影響を与える関係に距離を置く"
+        ]
+      },
+      {
+        source: "スッタニパータ",
+        ref: "経集 第二 小章",
+        theme: "平静",
+        verseJa: "世界の譽れも非難も、喜びも悲しみも、得失も、心を動かすものではない。平静な者は、真の自由を知る。",
+        actions: [
+          "誉れられても、非難されても、心を動かさない練習をする",
+          "他人の評価に一喜一憂しない",
+          "得ても失っても、平静を保つ",
+          "今日、最も平静でいられた瞬間を記録する"
+        ]
+      },
+      {
+        source: "スッタニパータ",
+        ref: "経集 第五 大章",
+        theme: "道",
+        verseJa: "この岸から彼の岸へ渡る者は、恐怖を超え、束縛を断ち切り、迷いの林を抜け出す。",
+        actions: [
+          "今日、一歩でも「苦しみの少ない方向」に進む",
+          "恐れに直面し、小さくでも行動する",
+          "迷いの中で、教えを指針として立ち返る",
+          "彼岸（安楽）への道を、日々の行いで歩む"
+        ]
       }
+    ];
 
-      //---カテゴリ追加---
-      addCategoryBtn.addEventListener("click", function(){
-        const newCat = newCategoryInput.value.trim();
-        if(newCat === "" || categories.includes(newCat)){
-          return;
-        }
-        categories.push(newCat);
-        newCategoryInput.value = "";
-        localStorage.setItem("categories",JSON.stringify(categories));
-        renderCategories();
-      });
+    const DAILY_PRACTICES = [
+      { id: "ahimsa", label: "害を与えない", hint: "生き物を傷つけず、言葉でも身体でも" },
+      { id: "truth", label: "正直に話す", hint: "真実で、相手のためになる言葉を" },
+      { id: "no-theft", label: "取らない・盗まない", hint: "他人の時間・物・信用を不当に奪わない" },
+      { id: "mindful-speech", label: "正しい言葉を選ぶ", hint: "怒り、中傷、無益な話を控える" },
+      { id: "contentment", label: "足るを知る", hint: "過度な欲望を手放し、今を満たす" },
+      { id: "effort", label: "精進する", hint: "善い習慣を一つ、今日も続ける" },
+      { id: "mindfulness", label: "正念を保つ", hint: "少なくとも一度、呼吸に意識を向ける" },
+      { id: "gratitude", label: "感謝を述べる", hint: "誰か一人に、感謝を伝える" }
+    ];
 
-      //---カテゴリ削除処理
-      deleteCategoryBtn.addEventListener("click", function(){
-        const targetCat = deleteCategorySelector.value;
-        if(!targetCat){
-          return;
-        }
-        //「その他」を削除しようとしたらブロック
-        if(targetCat === "その他"){
-          alert("「その他」カテゴリは削除できません");
-          return;
-        }
-        //タスクに削除カテゴリがあれば「その他」に振替
-        for(let i=0;i<data.length;i++){
-          if(data[i].category === targetCat){
-            data[i].category = "その他";
-          }
-        }
-        //カテゴリを削除
-        categories = categories.filter(cat => cat !== targetCat);
-        //保存
-        localStorage.setItem("categories",JSON.stringify(categories));
-        saveTasks();
+    function todayKey() {
+      return new Date().toISOString().slice(0, 10);
+    }
 
-        renderCategories();
-        renderTasks();
-        deleteCategorySelector.value = "";
-      });
+    function formatDateJa(dateStr) {
+      const d = new Date(dateStr + "T12:00:00");
+      const days = ["日", "月", "火", "水", "木", "金", "土"];
+      return `${d.getFullYear()}年${d.getMonth() + 1}月${d.getDate()}日（${days[d.getDay()]}）`;
+    }
 
-      //---タスク一覧の表示---
-      function renderTasks(){
-        taskList.innerHTML = "";
-        //---期限関連　今日の日付(YYYY-MM-DD)---
-        const today = new Date().toISOString().slice(0,10);
-        //---検索キーワード---
-        const keyword = searchInput.value.trim().toLowerCase();
+    function dayIndex() {
+      const start = new Date(new Date().getFullYear(), 0, 0);
+      const now = new Date();
+      const diff = now - start;
+      return Math.floor(diff / (1000 * 60 * 60 * 24)) % TEACHINGS.length;
+    }
 
-        //---ソート処理---
-        let sortedData = [...data];//元データをコピー
-        const sortType = sortSelector.value;
-        if(sortType === "created"){
-          //作成日時順（新しい順）
-          sortedData.sort((a,b)=>new Date(b.createdAt) - new Date(a.createdAt));
-        }else if(sortType === "dueDate"){
-          //期限順（古い順）期限なしは後ろへ
-          sortedData.sort((a,b)=>{
-            if(!a.dueDate){
-              return 1;
-            }
-            if(!b.dueDate){
-              return -1;
-            }
-            return new Date(a.dueDate) - new Date(b.dueDate); 
-          });
-        }else if(sortType==="priority"){
-          //優先度順（高い順）
-          const order = {high: 1,medium: 2, low:3};
-          sortedData.sort((a,b)=>order[a.priority]-order[b.priority]);
-        }
+    function loadDayData() {
+      const key = "dhamma-day-" + todayKey();
+      return JSON.parse(localStorage.getItem(key)) || {
+        actions: {},
+        practices: {},
+        reflection: ""
+      };
+    }
 
-        for(let index=0;index<sortedData.length;index++){
-          const task = sortedData[index];
+    function saveDayData(data) {
+      const key = "dhamma-day-" + todayKey();
+      localStorage.setItem(key, JSON.stringify(data));
+      updateHistoryIndex(todayKey(), data);
+    }
 
-          //---検索キーワードに部分一致しない場合はスキップ---
-          if(keyword && !task.text.toLowerCase().includes(keyword)){
-            continue;
-          }
+    function updateHistoryIndex(date, data) {
+      const index = JSON.parse(localStorage.getItem("dhamma-history")) || [];
+      const teaching = TEACHINGS[dayIndexForDate(date)];
+      const actionTotal = teaching.actions.length;
+      const actionDone = Object.values(data.actions || {}).filter(Boolean).length;
+      const practiceDone = Object.values(data.practices || {}).filter(Boolean).length;
+      const entry = {
+        date,
+        theme: teaching.theme,
+        source: teaching.source,
+        actionRate: Math.round((actionDone / actionTotal) * 100),
+        practiceRate: Math.round((practiceDone / DAILY_PRACTICES.length) * 100),
+        reflection: (data.reflection || "").slice(0, 80)
+      };
+      const existing = index.findIndex(e => e.date === date);
+      if (existing >= 0) index[existing] = entry;
+      else index.unshift(entry);
+      localStorage.setItem("dhamma-history", JSON.stringify(index.slice(0, 60)));
+    }
 
-          //---フィルタ適用---
-          if(filterStatus.value === "completed" && !task.completed){
-            continue;
-          }
-          if(filterStatus.value === "incomplete" && task.completed){
-            continue;
-          }
-          if(filterPriority.value !== "all" && task.priority !== filterPriority.value){
-            continue;
-          }
-          if(filterCategory.value !== "all" && task.category !== filterCategory.value){
-            continue;
-          }
-          if(currentView === "today" && task.dueDate !== today){
-            continue;
-          }
-          if(currentView === "completed" && !task.completed){
-            continue;
-          }
+    function dayIndexForDate(dateStr) {
+      const d = new Date(dateStr + "T12:00:00");
+      const start = new Date(d.getFullYear(), 0, 0);
+      const diff = d - start;
+      return Math.floor(diff / (1000 * 60 * 60 * 24)) % TEACHINGS.length;
+    }
 
-          const li = document.createElement("li");
-          
-          //---完了状態---
-          if(task.completed){
-            li.classList.add("completed");
-          }
-          //---優先度色分け表示---
-          li.classList.add(task.priority);
+    function renderTeaching(teaching, containerId, showFull) {
+      const el = document.getElementById(containerId);
+      el.innerHTML = `
+        <div class="verse-block">
+          <p class="verse-ja">${teaching.verseJa}</p>
+        </div>
+        <span class="source-tag">${teaching.source} — ${teaching.ref}</span>
+        <span class="theme-badge">${teaching.theme}</span>
+      `;
+    }
 
-          //---期限判定---
-          if(task.dueDate){
-            if(task.dueDate<today){
-              li.classList.add("overdue");
-            }else if(task.dueDate === today){
-              li.classList.add("due-today");
-            }
-          }
-
-          //ソート後のタスク(task)に対応する、元の data 配列での位置を探す
-          let originalIndex = -1;
-          for(let i=0;i<data.length;i++){
-            if(data[i].id === task.id){
-              originalIndex = i;
-              break;
-            }
-          }
-
-          //---作成日・更新日---
-          const topInfo = document.createElement("div");
-          topInfo.classList.add("task-top-info");
-
-          if(task.updatedAt){
-            const updated = new Date(task.updatedAt);
-            if(!isNaN(updated)){
-              topInfo.textContent = `更新日：${updated.toLocaleDateString("ja-JP")}`;
-            }
-          }else if(task.createdAt){
-              const created = new Date(task.createdAt);
-              if(!isNaN(created)){
-                topInfo.textContent = `作成日：${created.toLocaleDateString("ja-JP")}`;
-              }
-          }
-          li.appendChild(topInfo); 
-
-          //---チェックボックス作成---
-          const checkbox = document.createElement("input");
-          checkbox.type = "checkbox";
-          checkbox.checked = task.completed;
-          checkbox.addEventListener("change", function(){
-            toggleTask(originalIndex);
-          });
-
-          //---テキスト---
-          const span = document.createElement("span");
-          span.textContent = task.text;
-          span.addEventListener("click", function(){
-            toggleTask(originalIndex);
-          });
-
-          //---詳細説明---
-          const descSpan = document.createElement("div");
-          descSpan.textContent = task.description || "";
-          descSpan.style.fontSize = "12px";
-          descSpan.style.color = "#555";
-          descSpan.style.marginLeft = "25px";
-
-          //---カテゴリ表示---
-          const catSpan = document.createElement("span");
-          catSpan.classList.add("category-badge");
-          catSpan.textContent = task.category || "未分類";
-
-          //---期限表示---
-          const dueSpan = document.createElement("span");
-          dueSpan.classList.add("due-date");
-          if(task.dueDate){
-            dueSpan.textContent = `期限：${task.dueDate}`;
-          }
-
-          //---ボタンエリア---
-          const buttonArea = document.createElement("div");
-          buttonArea.classList.add("task-buttons");
-
-          //---編集ボタン---
-          const editBtn = document.createElement("button");
-          editBtn.textContent = "編集";
-          editBtn.addEventListener("click", function(){
-            editTask(originalIndex,li);
-          });
-
-          //---削除ボタン---
-          const delBtn = document.createElement("button");
-          delBtn.textContent = "削除";
-          delBtn.addEventListener("click", function(){
-            deleteTask(originalIndex);
-          });
-
-          buttonArea.appendChild(editBtn); //詳細説明編集ボタン
-          buttonArea.appendChild(delBtn);
-
-          //---チェックボックスを左に配置---
-          const titleRow = document.createElement("div");
-          titleRow.classList.add("task-main-row");
-          titleRow.appendChild(checkbox);
-          titleRow.appendChild(span);
-
-          const infoRow = document.createElement("div");
-          infoRow.classList.add("task-main-row");
-          /*詳細説明*/
-          infoRow.appendChild(descSpan);
-          /*カテゴリ表示*/
-          infoRow.appendChild(catSpan);
-          /*期限表示*/
-          infoRow.appendChild(dueSpan);
-
-          const buttonRow = document.createElement("div");
-          buttonRow.classList.add("task-main-row");
-          buttonRow.appendChild(buttonArea);
-
-          li.appendChild(titleRow);
-          li.appendChild(infoRow);
-          li.appendChild(buttonRow);
-
-          taskList.appendChild(li);
-        }
-      }
-
-      //---LocalStorageに保存---
-      function saveTasks(){
-        localStorage.setItem("key", JSON.stringify(data));
-      }
-
-      //---タスク追加---
-      addBtn.addEventListener("click", function(){
-        const text = taskInput.value.trim();
-        /*詳細説明*/
-        const description = descInput.value.trim();
-        /*優先度色分け表示*/
-        const priority = prioritySelector.value;
-        /*入力された期限を取得*/
-        const dueDate = dueDateInput.value;
-        /*カテゴリ*/
-        const category = categorySelector.value;
-        if(text === ""){
-          return;
-        }
-        if(editIndex === null){
-          data.push({
-            id: Date.now(), //一意のID
-            text, 
-            description: description || "", //詳細説明
-            completed: false, 
-            priority, 
-            dueDate, 
-            category,
-            createdAt: new Date().toISOString(),
-            updatedAt: null, //更新日
-            updated: false //作成日、更新日を判別フラグ
-
-          });/*priority 優先度色分け表示, dueDate 期限表示,category カテゴリ追加,createdAt 作成日時*/
-        }else{
-          data[editIndex].text = text;
-          data[editIndex].description = description;
-          data[editIndex].dueDate = dueDate;
-          data[editIndex].category = category;
-          editIndex = null;
-          addBtn.textContent = "追加";
-
-        }
-        taskInput.value = "";
-        descInput.value = "";//クリア
-        dueDateInput.value = ""; //期限入力もリセット
-        saveTasks();
-        renderTasks();
-      });
-
-      //---タスク削除---
-      function deleteTask(index){
-        data.splice(index, 1);
-        saveTasks();
-        renderTasks();
-      }
-
-      //---タスク編集---
-      function editTask(index,li){
-        const task = data[index];
-
-        //編集モード
-        li.classList.add("editing");
-        li.innerHTML = "";
-
-        //---編集モード表示---
-        li.innerHTML = "";
-        const textInput = document.createElement("input");
-        textInput.type = "text";
-        textInput.value = task.text;
-        textInput.className = "edit-input";
-        textInput.placeholder = "タスク名";
-
-        //---詳細説明---
-        const descInput = document.createElement("input");
-        descInput.type = "text";
-        descInput.value = task.description || "";
-        descInput.className = "edit-input";
-        descInput.placeholder = "詳細説明";
-
-        //---期限---
-        const dueInput = document.createElement("input");
-        dueInput.type = "date";
-        dueInput.value = task.dueDate || "";
-
-        //---優先度---
-        const prioritySelect = document.createElement("select");
-        const priorities = ["high","medium","low"];
-        for(let i=0;i<priorities.length;i++){
-          const p = priorities[i];
-          const opt = document.createElement("option");
-          if(p === "high"){
-            opt.textContent = "高";
-          }else if(p === "medium"){
-            opt.textContent = "中";
-          }else{
-            opt.textContent = "低";
-          }
-
-          //値を設定
-          opt.value = p;
-
-          //現在のタスクの優先度と一致していれば選択状態に
-          if(p===task.priority){
-            opt.selected = true;
-          }
-
-          //selectに追加
-          prioritySelect.appendChild(opt);
-        }
-        
-        //---カテゴリ---
-        const categorySelect = document.createElement("select");
-        for(let i=0;i<categories.length;i++){
-          const cat = categories[i];
-          const opt = document.createElement("option");
-
-          //値と表示文字を設定
-          opt.value = cat;
-          opt.textContent = cat;
-
-          //現在のカテゴリと一致していれば選択状態に
-          if(cat === task.category){
-            opt.selected = true;
-          }
-
-          //selectに追加
-          categorySelect.appendChild(opt);
-        }
-
-        //保存ボタン
-        const saveBtn = document.createElement("button");
-        saveBtn.textContent = "保存";
-        saveBtn.addEventListener("click", function(){
-          const newText = textInput.value.trim();
-          if(newText === ""){
-            alert("タスク名を入力してください");
-            return;
-          }
-          data[index].text = newText;
-          data[index].description = descInput.value;
-          data[index].dueDate = dueInput.value;
-          data[index].priority = prioritySelect.value;
-          data[index].category = categorySelect.value;
-          data[index].updatedAt = new Date().toISOString();//更新日保存
-          data[index].updated = true; //更新フラグを立てる
-          saveTasks();
-          renderTasks();
+    function renderActions(teaching, dayData) {
+      const list = document.getElementById("actionList");
+      list.innerHTML = "";
+      teaching.actions.forEach((action, i) => {
+        const li = document.createElement("li");
+        const id = "action-" + i;
+        const checked = !!dayData.actions[id];
+        li.innerHTML = `
+          <input type="checkbox" id="${id}" ${checked ? "checked" : ""}>
+          <label for="${id}">${action}</label>
+        `;
+        li.querySelector("input").addEventListener("change", function() {
+          dayData.actions[id] = this.checked;
+          saveDayData(dayData);
+          updateProgress(teaching, dayData);
         });
-
-        const cancelBtn = document.createElement("button");
-        cancelBtn.textContent = "キャンセル";
-        cancelBtn.addEventListener("click", function(){
-          renderTasks();
-        });
-
-        //---編集フォームを構築---
-        li.appendChild(textInput);
-        li.appendChild(descInput);
-        li.appendChild(dueInput);
-        li.appendChild(prioritySelect);
-        li.appendChild(categorySelect);
-        li.appendChild(saveBtn);
-        li.appendChild(cancelBtn);
-      }
-
-      //---完了・未完了の切り替え---
-      function toggleTask(index){
-        data[index].completed = !data[index].completed;
-        saveTasks();
-        renderTasks();
-      }
-
-      //---検索イベント---
-      searchInput.addEventListener("input", renderTasks);
-      searchClearBtn.addEventListener("click", function(){
-        searchInput.value = "";
-        renderTasks();
+        list.appendChild(li);
       });
+      updateProgress(teaching, dayData);
+    }
 
-      //---フィルター変更イベント---
-      filterStatus.addEventListener("change", renderTasks);
-      //---優先順位変更イベント---
-      filterPriority.addEventListener("change", renderTasks);
-      //---フィルター変更イベント---
-      filterCategory.addEventListener("change", renderTasks);
-      //---ソート変更イベント---
-      sortSelector.addEventListener("change", renderTasks);
+    function renderPractices(dayData) {
+      const grid = document.getElementById("practiceList");
+      grid.innerHTML = "";
+      DAILY_PRACTICES.forEach(p => {
+        const div = document.createElement("div");
+        const checked = !!dayData.practices[p.id];
+        div.className = "practice-item" + (checked ? " done" : "");
+        div.innerHTML = `
+          <input type="checkbox" id="practice-${p.id}" ${checked ? "checked" : ""}>
+          <label for="practice-${p.id}">
+            ${p.label}
+            <span class="hint">${p.hint}</span>
+          </label>
+        `;
+        div.querySelector("input").addEventListener("change", function() {
+          dayData.practices[p.id] = this.checked;
+          div.classList.toggle("done", this.checked);
+          saveDayData(dayData);
+          updatePracticeProgress(dayData);
+        });
+        grid.appendChild(div);
+      });
+      updatePracticeProgress(dayData);
+    }
 
-      //---初期表示---
-      /*初期表示時呼び出し*/
-      renderCategories();
-      renderTasks();
-      
+    function updateProgress(teaching, dayData) {
+      const total = teaching.actions.length;
+      const done = teaching.actions.filter((_, i) => dayData.actions["action-" + i]).length;
+      const pct = total ? Math.round((done / total) * 100) : 0;
+      document.getElementById("actionProgress").style.width = pct + "%";
+      document.getElementById("actionProgressText").textContent = `${done} / ${total} 完了（${pct}%）`;
+    }
 
-    </script>
- </body>
- </html>
+    function updatePracticeProgress(dayData) {
+      const done = DAILY_PRACTICES.filter(p => dayData.practices[p.id]).length;
+      const pct = Math.round((done / DAILY_PRACTICES.length) * 100);
+      document.getElementById("practiceProgress").style.width = pct + "%";
+      document.getElementById("practiceProgressText").textContent = `${done} / ${DAILY_PRACTICES.length} 完了（${pct}%）`;
+    }
 
+    function renderToday() {
+      const idx = dayIndex();
+      const teaching = TEACHINGS[idx];
+      const dayData = loadDayData();
 
+      document.getElementById("todayDate").textContent = formatDateJa(todayKey());
+      renderTeaching(teaching, "todayTeaching", true);
+      renderActions(teaching, dayData);
+      renderPractices(dayData);
 
+      const reflectionInput = document.getElementById("reflectionInput");
+      reflectionInput.value = dayData.reflection || "";
+    }
+
+    function renderCatalog() {
+      const catalog = document.getElementById("teachingCatalog");
+      const todayIdx = dayIndex();
+      catalog.innerHTML = "";
+      TEACHINGS.forEach((t, i) => {
+        const div = document.createElement("div");
+        div.className = "teaching-list-item" + (i === todayIdx ? " today" : "");
+        div.innerHTML = `
+          <div class="title">${t.source} — ${t.theme}${i === todayIdx ? " （今日）" : ""}</div>
+          <div class="preview">${t.verseJa.slice(0, 60)}…</div>
+        `;
+        div.addEventListener("click", function() {
+          alert(`${t.source} ${t.ref}\n\n${t.verseJa}\n\n【今日の行動指針】\n${t.actions.map((a, n) => `${n + 1}. ${a}`).join("\n")}`);
+        });
+        catalog.appendChild(div);
+      });
+    }
+
+    function renderHistory() {
+      const list = document.getElementById("historyList");
+      const index = JSON.parse(localStorage.getItem("dhamma-history")) || [];
+      if (index.length === 0) {
+        list.innerHTML = '<div class="empty-state">まだ記録がありません。<br>今日の実践と振り返りを始めましょう。</div>';
+        return;
+      }
+      list.innerHTML = index.map(e => `
+        <div class="history-item">
+          <div class="history-date">${formatDateJa(e.date)} — ${e.source}「${e.theme}」</div>
+          <div class="history-summary">
+            行動指針 ${e.actionRate}% ／ 日々の実践 ${e.practiceRate}%
+            ${e.reflection ? " ／ " + e.reflection + (e.reflection.length >= 80 ? "…" : "") : ""}
+          </div>
+        </div>
+      `).join("");
+    }
+
+    document.querySelectorAll("nav button").forEach(btn => {
+      btn.addEventListener("click", function() {
+        document.querySelectorAll("nav button").forEach(b => b.classList.remove("active"));
+        document.querySelectorAll(".panel").forEach(p => p.classList.remove("active"));
+        this.classList.add("active");
+        document.getElementById("panel-" + this.dataset.panel).classList.add("active");
+        if (this.dataset.panel === "teachings") renderCatalog();
+        if (this.dataset.panel === "history") renderHistory();
+      });
+    });
+
+    document.getElementById("saveReflection").addEventListener("click", function() {
+      const dayData = loadDayData();
+      dayData.reflection = document.getElementById("reflectionInput").value.trim();
+      saveDayData(dayData);
+      this.textContent = "保存しました";
+      setTimeout(() => { this.textContent = "振り返りを保存"; }, 1500);
+    });
+
+    renderToday();
+  </script>
+</body>
+</html>
